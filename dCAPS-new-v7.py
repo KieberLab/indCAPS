@@ -349,7 +349,7 @@ def lastSharedBase(seq1,seq2,direction):
 			exitVar = 1
 			
 	if direction is "right":
-		position = 0 - (position )#-1)
+		position = 0 - (position )
 
 	return(position)
 	
@@ -381,13 +381,7 @@ def scanUnshared(seq,currentMotif,lastShared,lastSharedReverse,hammingThreshold)
 			currentSeqRight = "n"*(border-eachPosition) + partSeqRight
 			currentMotifLeft = partMotifLeft + "n"*(len(currentMotif) - len(partSeqLeft))
 			currentMotifRight = "n"*len(partSeqLeft) + partMotifRight
-																																								
-#			print("---")
-#			print(currentSeq1Left)
-#			print(currentSeq1Right)
-#			print(currentMotifLeft)
-#			print(currentMotifRight)
-#			print("---")
+			
 			leftHam = hamming(currentMotifLeft,currentSeqLeft,allComparisons=False)
 			rightHam = hamming(currentMotifRight,currentSeqRight,allComparisons=False)
 			
@@ -572,9 +566,99 @@ def evaluateSites(seq1,seq2,enzymeInfo,hammingThreshold,enzymeName):
 				print("CAPS primer possible")
 
 
+def generatePrimer(seq,untenablePositions,desiredSuitable,lastSharedBase,TM,hammingThreshold,currentMotif):
+	# TM is a value for Degree C
+	# Start the primer at the last shared base
+	# If the last shared base is a mismatch to the motif, check the rules for that
+	# Start extending a primer backwards
+	# for each position, check melting temp
+	# continue if it's in good melting temp range
+	# if you have a complete upstream motif, then you have to change a base
+	# Take untenablePositions so we know all the positions we need to edit
+	# But this function will only return a primer for a single suitable position, 
+	# So only supply one position
+	motifLen = len(currentMotif)
+	currentStart = lastSharedBase - 1
+	primerList = []
+	output = []
+	
+	baseChange = {"c":"t",
+			   "g":"a",
+			   "a":"g",
+			   "t":"c"}
+	
+	# Figure out which base of the motif will have to be changed
+	motifBase = 0
+	while motif[motifBase].lower() == "n":
+		motifBase += 1
+	
+	# Make any necessary edits to the sequence
+	# In general, edit the most-upstream base in a motif
+	# But also check for overlaps with other untenable positions
+	if untenablePositions != []:
+		if len(untenablePositions) > 1:
+			for eachIndex in range(0,len(untenablePositions)-1):
+				currentSpot = untenablePositions[eachIndex]
+				
+				# Make sure you're not looking at the last item in the list
+				if eachIndex != (len(untenablePositions)-1):
+					nextSpot = untenablePositions[eachIndex+1]
+				# If you're looking at the last item in the list, make it None
+				else:
+					nextSpot = None
+				
+				if nextSpot is not None and (currentSpot + motifLen) >= (nextSpot+motifBase):
+					# Check the spot after that
+					lookAhead = 1
+					while eachIndex + lookAhead <= (len(untenablePositions)-1):
+						if (untenablePositions[eachIndex+lookAhead]+motifBase) > currentSpot + motifLen:
+							break
+						lookAhead += 1
+					# Now that you've found the last spot that overlaps, change the first base of the last motif
+					posToChange = untenablePositions[eachIndex+lookAhead]
+					baseToChange = seq[posToChange+motifBase].lower()
+					seq[posToChange+motifBase] = baseChange[baseToChange].upper()
+					# Also skip ahead past the spots you skipped because they overlapped
+					# TODO: figure out how to make it skip multiple loops
+				else:
+					# Change the spot
+					baseToChange = seq[currentSpot+motifBase].lower()
+					seq[currentSpot+motifBase] = baseChange[baseToChange].upper()		
+					
+			# Choose the first position
+			# Add motifLen
+			# Iterate over list to find positions overlapping
+			# If you find overlaps, find the most distant overlap
+			# If you don't find overlaps, change the 5' most base
+		else:
+			# Change the spot
+			baseToChange = seq[untenablePositions[0]+motifBase].lower()
+			seq[untenablePositions[0]+motifBase] = baseChange[baseToChange].upper()				
+	
+	# See if the primer violates any rules
+	# TODO: rule check
+	
+	# Generate primer sub-sequences
+	while currentStart > 0:
+		currentPrimer = seq[currentStart:lastSharedBase]
+		primerList.append(currentPrimer)
+		currentStart -= 1
+	for eachPrimer in primerList:
+		output.append(estimateTM(eachPrimer))
+	
+	# Choose the best primer sub-sequence based on difference from optimum Tm
+	# TODO: choose primer
+	
+	return(currentPrimer)
+
+
+
+
 def compareEnzymes(seq1,seq2,enzymes,hammingThreshold):
 	return(None)
 
+def makePrimer(seq1,seq2,enzyme,suitablePositions,untenablePositions,hammingThreshold):
+	return(None)
 
 for eachEnzyme in enzymes:
 	enzymeName = eachEnzyme
@@ -612,7 +696,7 @@ for eachEnzyme in enzymes:
 # primer would be: sssCG, so you have as amplicons:
 # CG	ATT
 # CG	CAT
-# the first C is a shared base, so it's naturally part of hte primer, but the final G in the primer is actually in the unshared region, and the resulting motif does not overlap at all with the shared region.
+# the first C is a shared base, so it's naturally part of the primer, but the final G in the primer is actually in the unshared region, and the resulting motif does not overlap at all with the shared region.
 
 # mismatches! G/T mismatches are ok. G/A and G/G mismatches are not good! will not amplify!
 
