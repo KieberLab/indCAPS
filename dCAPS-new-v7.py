@@ -8,7 +8,7 @@ import numpy
 arguments = sys.argv
 seq1 = 'GCGGAgggcccCTCAAGATCCCGAGTgggTCTTATcccCAGTTTCTTGGCTCTGTTA' #arguments[1]
 seq2 = 'GCGGAgggcccCTCAAGATCCCGAGTgggcccCAGTTTCTTGGCTCTGTTA' #arguments[2]
-currentMotif = 'gggccc'
+#currentMotif = 'gggccc'
 hamNum = 4 #arguments[3]
 
 
@@ -55,7 +55,7 @@ def hamming(seq1,seq2,allResults=False,allComparisons=True):
 	# Expects a character string, will complain if it doesn't get it
 	# Returns an integer
 	
-	# FIXME: HUGE PROBLEM. right now the revcomp alternative checking is fucking me up
+	# HUGE WARNING. Be careful how you set up sequences with N's and call this.
 	# Ex: hamming('gggnnn','grcnnn',allResults=True) returns [4,0,0]
 	seq1 = seq1.lower()
 	seq2 = seq2.lower()
@@ -273,7 +273,6 @@ def nearestNeighbor(seq,sodiumConc,primerConc):
 
 
 def estimateTM(seq,saltConc=0.05,primerConc=50*10**(-9),func='nearestNeighbor'):
-	print(func)
 	# Default function is 'nearestNeighbor'
 	# see http://biotools.nubic.northwestern.edu/OligoCalc.html
 	# Find number of each base
@@ -542,7 +541,7 @@ def evaluateSites(seq1,seq2,enzymeInfo,hammingThreshold,enzymeName):
 				currentSeq2 = seq2
 				currentMotif = currentMotif
 			print("Enzyme: " + enzymeName)
-			outputstring1 = "Possible cut site found at position " + str(currentSet[1]) +"."
+			outputstring1 = "Possible cut site found at position " + str(currentSet[1]) + "."
 			outputstring2 = "Problem cut site found at position " + str(currentSet[0]) + "."
 			print(outputstring1)
 			print(outputstring2)
@@ -564,9 +563,16 @@ def evaluateSites(seq1,seq2,enzymeInfo,hammingThreshold,enzymeName):
 			
 			if 0 in motifDiff1 or 0 in motifDiff2:
 				print("CAPS primer possible")
+			# TODO: Make sure this is correct
+			currentLastShared = lastSharedBase(currentSeq1,currentSeq2,'left')
+			for eachIndex in currentSet[1]:
+				print(eachIndex)
+				newPrimer = generatePrimer(seq1,currentSet[0],eachIndex,currentLastShared,58,hammingThreshold,currentMotif)
+				print(newPrimer[0])
+				print(estimateTM(newPrimer[0]))
 
 
-def generatePrimer(seq,untenablePositions,desiredSuitable,lastSharedBase,TM,hammingThreshold,currentMotif):
+def generatePrimer(seq,untenablePositions,desiredSuitable,lastShared,TM,hammingThreshold,currentMotif):
 	# TM is a value for Degree C
 	# Start the primer at the last shared base
 	# If the last shared base is a mismatch to the motif, check the rules for that
@@ -577,80 +583,100 @@ def generatePrimer(seq,untenablePositions,desiredSuitable,lastSharedBase,TM,hamm
 	# Take untenablePositions so we know all the positions we need to edit
 	# But this function will only return a primer for a single suitable position, 
 	# So only supply one position
+	
+	# FIXME: Right now, it changes bases to modify the sequence before selecting a primer based on Tm
+	# This can run into cases where it modifies a base that it doesn't need to.
+	# Example: in one case, it modified a GGGCCC site to be GAGCCC, but the primer the function reported
+	# Didn't even have a valid GGGCCC site, because the first base in the primer was partway through that sequence
+	
 	motifLen = len(currentMotif)
-	currentStart = lastSharedBase - 1
+	currentStart = lastShared
 	primerList = []
 	output = []
 	
-	baseChange = {"c":"t",
-			   "g":"a",
-			   "a":"g",
-			   "t":"c"}
 	
 	# Figure out which base of the motif will have to be changed
 	motifBase = 0
-	while motif[motifBase].lower() == "n":
+	while currentMotif[motifBase].lower() == "n":
 		motifBase += 1
 	
 	# Make any necessary edits to the sequence
 	# In general, edit the most-upstream base in a motif
 	# But also check for overlaps with other untenable positions
 	if untenablePositions != []:
-		if len(untenablePositions) > 1:
-			for eachIndex in range(0,len(untenablePositions)-1):
-				currentSpot = untenablePositions[eachIndex]
-				
-				# Make sure you're not looking at the last item in the list
-				if eachIndex != (len(untenablePositions)-1):
-					nextSpot = untenablePositions[eachIndex+1]
-				# If you're looking at the last item in the list, make it None
-				else:
-					nextSpot = None
-				
-				if nextSpot is not None and (currentSpot + motifLen) >= (nextSpot+motifBase):
-					# Check the spot after that
-					lookAhead = 1
-					while eachIndex + lookAhead <= (len(untenablePositions)-1):
-						if (untenablePositions[eachIndex+lookAhead]+motifBase) > currentSpot + motifLen:
-							break
-						lookAhead += 1
-					# Now that you've found the last spot that overlaps, change the first base of the last motif
-					posToChange = untenablePositions[eachIndex+lookAhead]
-					baseToChange = seq[posToChange+motifBase].lower()
-					seq[posToChange+motifBase] = baseChange[baseToChange].upper()
-					# Also skip ahead past the spots you skipped because they overlapped
-					# TODO: figure out how to make it skip multiple loops
-				else:
-					# Change the spot
-					baseToChange = seq[currentSpot+motifBase].lower()
-					seq[currentSpot+motifBase] = baseChange[baseToChange].upper()		
-					
-			# Choose the first position
-			# Add motifLen
-			# Iterate over list to find positions overlapping
-			# If you find overlaps, find the most distant overlap
-			# If you don't find overlaps, change the 5' most base
+		if len(untenablePositions) == 1:
+			# Case where only one untenable position
+			seq = list(seq)
+			positionToModify = untenablePositions[0] + motifBase
+			oldBase = seq[positionToModify].lower()
+			seq[positionToModify] = revComp(oldBase)
+			seq = ''.join(seq)
+			
 		else:
-			# Change the spot
-			baseToChange = seq[untenablePositions[0]+motifBase].lower()
-			seq[untenablePositions[0]+motifBase] = baseChange[baseToChange].upper()				
+			# Case where more than one untenable position
+			indexIterator = iter(range(0,len(untenablePositions)-1))
+			for eachIndex in indexIterator:
+				eachPosEnd = untenablePositions[eachIndex] + motifLen
+				
+				lookAhead = 0
+				while eachPosEnd > untenablePositions[eachIndex+lookAhead]:
+					if eachIndex+lookAhead >= len(untenablePositions) or (eachIndex+lookAhead)>= len(untenablePositions)-1:
+						break
+					lookAhead += 1
+				
+				# Modify the base
+				seq = list(seq)
+				positionToModify = untenablePositions[eachIndex+lookAhead] + motifBase
+				oldBase = seq[positionToModify].lower()
+				seq[positionToModify] = revComp(oldBase)
+				seq = ''.join(seq)
+				
+				# Skip positions as necessary				
+				for each in range(0,lookAhead):
+					next(indexIterator,None)
+				
+	# Modify the motif if necessary
+	currentSite = seq[desiredSuitable:desiredSuitable+motifLen]
+	if revComp(currentMotif).lower() == currentMotif.lower():
+		orientedMotif = currentMotif
+	else:
+		# TODO: Have it figure out the right orientation
+		orientedMotif = currentMotif
+	orientedMotif = list(orientedMotif)
+	currentSite = list(currentSite)
+	for each in range(0,lastShared-desiredSuitable):
+		if orientedMotif[each] in ['g','c','t','a'] and orientedMotif[each] != currentSite[each]:
+			currentSite[each] = orientedMotif[each]
+	orientedMotif = ''.join(orientedMotif)
+	currentSite = ''.join(currentSite)
+	seqLeft = seq[:desiredSuitable]
+	seqRight = seq[(desiredSuitable+motifLen):]
+	seq = seqLeft + currentSite + seqRight
 	
 	# See if the primer violates any rules
 	# TODO: rule check
+	# Rule: G/T mismatch works at 3' end, but G/A and G/G mismatches don't. (Simsek 2000)
+	# Rule: Mismatches to canonical shared sequence less than hamming dist
 	
 	# Generate primer sub-sequences
 	while currentStart > 0:
-		currentPrimer = seq[currentStart:lastSharedBase]
+		currentPrimer = seq[currentStart:lastShared]
 		primerList.append(currentPrimer)
 		currentStart -= 1
 	for eachPrimer in primerList:
 		output.append(estimateTM(eachPrimer))
 	
-	# Choose the best primer sub-sequence based on difference from optimum Tm
-	# TODO: choose primer
+	# Filter for negative values
+	filterList = [x for x in range(0,len(output)) if output[x] <= 0]
+	primerList = [primerList[x] for x in range(0,len(output)) if x not in filterList]
+	output = [output[x] for x in range(0,len(output)) if x not in filterList]
 	
-	return(currentPrimer)
-
+	
+	# Find minimum diff
+	outputDiff = [abs(x - TM) for x in output]
+	# Choose the best primer sub-sequence based on difference from optimum Tm
+	bestPrimer = [primerList[x] for x in range(0,len(outputDiff)) if outputDiff[x] == min(outputDiff)]
+	return(bestPrimer)
 
 
 
@@ -666,6 +692,9 @@ for eachEnzyme in enzymes:
 	evaluateSites(seq1,seq2,enzymeValue,1,enzymeName)
 
 
+x = generatePrimer(seq1,[5,6],26,29,60,hamNum,"ggnncc")
+print(x)
+print(estimateTM(x[0]))
 
 # possibilities for unshared regions
 # both sequences have unshared region of same length
