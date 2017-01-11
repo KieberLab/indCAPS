@@ -566,9 +566,8 @@ def evaluateSites(seq1,seq2,enzymeInfo,hammingThreshold,enzymeName):
 			# TODO: Make sure this is correct
 			currentLastShared = lastSharedBase(currentSeq1,currentSeq2,'left')
 			for eachIndex in currentSet[1]:
-				print(eachIndex)
-				newPrimer = generatePrimer(seq1,currentSet[0],eachIndex,currentLastShared,58,hammingThreshold,currentMotif)
-				print(newPrimer[0])
+				newPrimer = generatePrimer(currentSeq1,currentSet[0],eachIndex,currentLastShared,58,hammingThreshold,currentMotif)
+				print(" "*(12+currentLastShared-len(newPrimer[0]))+newPrimer[0])
 				print(estimateTM(newPrimer[0]))
 
 
@@ -692,9 +691,9 @@ for eachEnzyme in enzymes:
 	evaluateSites(seq1,seq2,enzymeValue,1,enzymeName)
 
 
-x = generatePrimer(seq1,[5,6],26,29,60,hamNum,"ggnncc")
-print(x)
-print(estimateTM(x[0]))
+#x = generatePrimer(seq1,[5,6],26,29,60,hamNum,"ggnncc")
+#print(x)
+#print(estimateTM(x[0]))
 
 # possibilities for unshared regions
 # both sequences have unshared region of same length
