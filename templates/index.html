@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+
+<form role="form" method="POST" action="/">
+	First Sequence: <input type="text" name="seq1"><br>
+	Second Sequence: <input type="text" name="seq2"><br>
+	<input type="submit" value="Submit">
+</form>
+
+<div>
+	<table>
+	{% for result in results %}
+		<tr>
+			<td>{{ result[0] }}</td>
+		</tr>
+	{% endfor %}
+	</table>
+</div>

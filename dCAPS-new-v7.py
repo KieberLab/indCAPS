@@ -1,11 +1,8 @@
-
-import sys
+import os
 import warnings
-#import itertools
+import requests
 from math import log
-import numpy
 
-arguments = sys.argv
 seq1 = 'GCGGAgggcccCTCAAGATCCCGAGTgggTCTTATcccCAGTTTCTTGGCTCTGTTA' #arguments[1]
 seq2 = 'GCGGAgggcccCTCAAGATCCCGAGTgggcccCAGTTTCTTGGCTCTGTTA' #arguments[2]
 #currentMotif = 'gggccc'
@@ -32,19 +29,6 @@ with open("motifs.txt") as enzymeFile:
 													
 
 ## Custom Functions
-
-def indelModel(species):
-	return(None)
-	# choose whether insertions or deletions happen
-	# Using negative binomial with a high probability of stopping
-	# Calling for 1000 samples even though it will almost certainly be less than 10 indels
-	if species is "ArabidopsisThaliana":
-		n = 1000
-		p = 0.95
-	elif species is "OryzaSativa":
-		n = 1000
-		p = 0.90
-	return(numpy.random.binomial(n,p))
 		
 def hammingBool(seq1,seq2,allResults=False):
 	# Instead of returning a singular value, returns lists of bools indicating whether there's a match
