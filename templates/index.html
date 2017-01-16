@@ -3,15 +3,18 @@
 <form role="form" method="POST" action="/">
 	First Sequence: <input type="text" name="seq1"><br>
 	Second Sequence: <input type="text" name="seq2"><br>
+	Mismatch Max: <input type="number" name="ham"><br>
 	<input type="submit" value="Submit">
 </form>
 
 <div>
 	<table>
-	{% for result in results %}
-		<tr>
-			<td>{{ result[0] }}</td>
-		</tr>
+	{% for enzymeResult in allResults %}
+		{% for eachLine in enzymeResult %}
+			<tr>
+				<td>{{ eachLine }}</td>
+			</tr>
+		{% endfor %}
 	{% endfor %}
 	</table>
 </div>
