@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 import warnings
 from math import log
 from flask import Flask, render_template, request
