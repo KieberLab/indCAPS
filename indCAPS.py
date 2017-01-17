@@ -1,6 +1,6 @@
 import warnings
 from math import log
-
+from enzymes import enzymes
 #seq1 = 'GCGGAgggcccCTCAAGATCCCGAGTgggTCTTATcccCAGTTTCTTGGCTCTGTTA' #arguments[1]
 #seq2 = 'GCGGAgggcccCTCAAGATCCCGAGTgggcccCAGTTTCTTGGCTCTGTTA' #arguments[2]
 #currentMotif = 'gggccc'
@@ -13,15 +13,7 @@ seq2 = "TGTGTGTGCAGGGAGAAGCCAAATGTGGATTTGACAGGGTGGACTCGTATGTGCATCAG"
 ## Enzymes
 # Will not include nicking enzymes or intron-encoding enzymes or homing enzymes
 # Also does not include two-site cutters: BaeI, BsaXI, CspCI, BcgI
-enzymes = {}
-with open("motifs.txt") as enzymeFile:
-	for line in enzymeFile:
-		line = line.rstrip()
-		line = line.lower()
-		if line[0] is "#":
-			continue
-		(enzyme,motif,forward,reverse) = line.split("\t")
-		enzymes[enzyme] = [motif,forward,reverse]
+
 
 ## Errors to Check For
 # Non-bases in input
