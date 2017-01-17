@@ -5,14 +5,15 @@ import warnings
 from math import log
 import numpy
 from flask import Flask, render_template, request
-from dCAPS-new-v7 import hammingBool, hamming, revComp, baseNumbers, deltaG, deltaS
-from dCAPS-new-v7 import saltAdjusted, basicTemp, nearestNeighbor, estimateTM
-from dCAPS-new-v7 import lastSharedBase, scanUnshared, scanSequence, evaluateSites
-from dCAPS-new-v7 import generatePrimer, compareEnzymes, makePrimer, enzymes
+from indCAPS import hammingBool, hamming, revComp, baseNumbers, deltaG, deltaS
+from indCAPS import saltAdjusted, basicTemp, nearestNeighbor, estimateTM
+from indCAPS import lastSharedBase, scanUnshared, scanSequence, evaluateSites
+from indCAPS import generatePrimer, compareEnzymes, makePrimer, enzymes
 
 # Set up Flask stuff
 app = Flask(__name__)
-app.config.from_object(os.environ['APP_SETTINGS'])
+#app.config.from_object(os.environ['APP_SETTINGS'])
+app.jinja_env.trim_blocks = True
 
 # Import enzymes
 enzymes = {}
@@ -25,18 +26,25 @@ with open("motifs.txt") as enzymeFile:
 		(enzyme,motif,forward,reverse) = line.split("\t")
 		enzymes[enzyme] = [motif,forward,reverse]
 
-@aap.route('/', methods=['GET','POST'])
+@app.route('/', methods=['GET','POST'])
 def index():
+	return(render_template('index.html'))
+		
+@app.route('/results', methods=['GET','POST'])
+def results():
+	seq1 = False
+	seq2 = False
+	hamDist = False
 	errors = []
+	allResults = []
 	if request.method == "POST":
 		# Get stuff the user entered
 		try:
-			seq1 = request.form['seq1','seq2','ham']
+			seq1 = request.form['seq1']
 			seq2 = request.form['seq2']
-			hamDist = request.form['ham']
+			hamDist = int(request.form['ham'])
 		except:
 			errors.append("No sequences provided.")
-		allResults = []
 		if seq1 and seq2 and hamDist:
 			# Call function to evaluate enzymes
 			for eachEnzyme in enzymes:
@@ -44,13 +52,13 @@ def index():
 				enzymeValue = enzymes[eachEnzyme]
 				enzymeResults = evaluateSites(seq1,seq2,enzymeValue,hamDist, enzymeName)
 				if enzymeResults is not None:
-					allResults.append(enzymeReuslts)
+					allResults.append(enzymeResults)
 			# Call function to generate primers
 			
 			# Call function to generate output
 			
 			# Display output
-	return(render_template('index.html'))
+	return(render_template('results.html',allResults=allResults))
 	
 if __name__ == '__main__':
 	app.run()

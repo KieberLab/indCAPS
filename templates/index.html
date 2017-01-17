@@ -1,20 +1,20 @@
 <!DOCTYPE html>
-
-<form role="form" method="POST" action="/">
-	First Sequence: <input type="text" name="seq1"><br>
-	Second Sequence: <input type="text" name="seq2"><br>
-	Mismatch Max: <input type="number" name="ham"><br>
-	<input type="submit" value="Submit">
-</form>
-
+<html>
+<head>
+<title>indCAPS</title>
+<link rel="stylesheet" href="static/custom.css" type="text/css" />
+</head>
+<body>
 <div>
-	<table>
-	{% for enzymeResult in allResults %}
-		{% for eachLine in enzymeResult %}
-			<tr>
-				<td>{{ eachLine }}</td>
-			</tr>
-		{% endfor %}
-	{% endfor %}
-	</table>
+<form role="form" method="POST" action="http://localhost:5000/results">
+First Sequence: <input type="text" name="seq1"><br>
+Second Sequence: <input type="text" name="seq2"><br>
+Mismatch Max: <input type="text" name="ham"><br>
+<input type="submit" value="Submit">
+</form>
 </div>
+</body>
+</html>
+
+
+<span class="inner-pre" style="margin:0; text-align: left;">

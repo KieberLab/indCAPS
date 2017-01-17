@@ -672,14 +672,14 @@ def compareEnzymes(seq1,seq2,enzymes,hammingThreshold):
 def makePrimer(seq1,seq2,enzyme,suitablePositions,untenablePositions,hammingThreshold):
 	return(None)
 
-for eachEnzyme in enzymes:
-	enzymeName = eachEnzyme
-	enzymeValue = enzymes[eachEnzyme]
-	results = evaluateSites(seq1,seq2,enzymeValue,1,enzymeName)
-	if results is not None:
-		for eachEnzyme in results:
-			for eachLine in eachEnzyme:
-				print(eachLine)
+#for eachEnzyme in enzymes:
+#	enzymeName = eachEnzyme
+#	enzymeValue = enzymes[eachEnzyme]
+#	results = evaluateSites(seq1,seq2,enzymeValue,1,enzymeName)
+#	if results is not None:
+#		for eachEnzyme in results:
+#			for eachLine in eachEnzyme:
+#				print(eachLine)
 
 
 #x = generatePrimer(seq1,[5,6],26,29,60,hamNum,"ggnncc")
