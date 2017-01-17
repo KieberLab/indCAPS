@@ -385,7 +385,7 @@ def baseNumbers(seq):
 #initiation	0.6	-9.0	3.4
 #self-comp	0.0	-1.4	0.4
 #non-comp	0.0	0.0	0.0
-# from 1. Sugimoto, N., Nakano, S. I., Yoneyama, M. & Honda, K. I. Improved thermodynamic parameters and helix initiation factor to predict stability of DNA duplexes. Nucleic Acids Res. 24, 4501–4505 (1996).
+# from 1. Sugimoto, N., Nakano, S. I., Yoneyama, M. and Honda, K. I. Improved thermodynamic parameters and helix initiation factor to predict stability of DNA duplexes. Nucleic Acids Res. 24, 4501–4505 (1996).
 
 def deltaG(seq):
 	# I really don't need this function, I dont know why I included it.
