@@ -3,7 +3,6 @@ import sys
 import warnings
 #import requests
 from math import log
-import numpy
 from flask import Flask, render_template, request
 from indCAPS import hammingBool, hamming, revComp, baseNumbers, deltaG, deltaS
 from indCAPS import saltAdjusted, basicTemp, nearestNeighbor, estimateTM
