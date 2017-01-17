@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-import warnings
-from math import log
+
 #seq1 = 'GCGGAgggcccCTCAAGATCCCGAGTgggTCTTATcccCAGTTTCTTGGCTCTGTTA' #arguments[1]
 #seq2 = 'GCGGAgggcccCTCAAGATCCCGAGTgggcccCAGTTTCTTGGCTCTGTTA' #arguments[2]
 #currentMotif = 'gggccc'
