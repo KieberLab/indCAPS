@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python2
 from setuptools import setup
 
 setup(name='indCAPS',
@@ -7,4 +7,4 @@ setup(name='indCAPS',
       author='Charles Hodgens',
       author_email='hodgens@email.unc.edu',
       install_requires=['Flask==0.10.1'],
-     )
+)
