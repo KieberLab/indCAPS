@@ -16,7 +16,7 @@ app.jinja_env.trim_blocks = True
 
 # Import enzymes
 enzymes = {}
-with open("motifs.txt") as enzymeFile:
+with open(os.path.join(path,"motifs.txt")) as enzymeFile:
 	for line in enzymeFile:
 		line = line.rstrip()
 		line = line.lower()
