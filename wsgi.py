@@ -8,22 +8,13 @@ from indCAPS import hammingBool, hamming, revComp, baseNumbers, deltaG, deltaS
 from indCAPS import saltAdjusted, basicTemp, nearestNeighbor, estimateTM
 from indCAPS import lastSharedBase, scanUnshared, scanSequence, evaluateSites
 from indCAPS import generatePrimer, compareEnzymes, makePrimer, enzymes
+from enzymes import enzymes
 
 # Set up Flask stuff
 app = Flask(__name__)
 #app.config.from_object(os.environ['APP_SETTINGS'])
 app.jinja_env.trim_blocks = True
 
-# Import enzymes
-enzymes = {}
-with open("motifs.txt")) as enzymeFile:
-	for line in enzymeFile:
-		line = line.rstrip()
-		line = line.lower()
-		if line[0] is "#":
-			continue
-		(enzyme,motif,forward,reverse) = line.split("\t")
-		enzymes[enzyme] = [motif,forward,reverse]
 
 @app.route('/', methods=['GET','POST'])
 def index():
