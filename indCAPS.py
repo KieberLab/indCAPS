@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import warnings
 from math import log
 #seq1 = 'GCGGAgggcccCTCAAGATCCCGAGTgggTCTTATcccCAGTTTCTTGGCTCTGTTA' #arguments[1]

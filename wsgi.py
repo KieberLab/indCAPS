@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import os
 import sys
 import warnings
@@ -8,7 +9,6 @@ from indCAPS import hammingBool, hamming, revComp, baseNumbers, deltaG, deltaS
 from indCAPS import saltAdjusted, basicTemp, nearestNeighbor, estimateTM
 from indCAPS import lastSharedBase, scanUnshared, scanSequence, evaluateSites
 from indCAPS import generatePrimer, compareEnzymes, makePrimer, enzymes
-from indCAPS import enzymes
 
 # Set up Flask stuff
 app = Flask(__name__)

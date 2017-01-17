@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 enzymes = {"AclI": ["AACGTT",2,4],
 "HindIII": ["AAGCTT",1,5],
 "SspI": ["AATATT",3,3],
