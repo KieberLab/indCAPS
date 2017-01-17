@@ -1,0 +1,32 @@
+Require:
+List of recognition sites for restriction enzymes
+	if possible: information on sites most amenable to mismatches by each enzyme
+
+Input mutant and WT sequence
+	Require: each sequence to start and end on homologous bases
+	Ex: GCnnnnnnnAT and GCnnnnAT, where the GC and AT are the start/end of the sequence and there's varying inner content between the two alleles
+
+Input maximum permissible number of mismatches
+
+
+Align start and end of sequences, find the regions in the middle where you begin to have mismatches
+	EX: the pair GCATATGAGAGCCC
+	             GCATATGCCC
+		would be compared as having a matched start sequence of GCATATG and a matches end sequence of GCCC
+	We want to find a break point and the shared region
+		
+Loop over mismatch number:
+	Find all permissible restriction sites in the entire sequence and check whether they overlap with the non-shared region of the sequences
+	to do this:
+		run recognition site over sequence
+			calculate hamming distance for each location, store
+		find all locations where hamming distance == mismatch number (modify hamming distance by enzyme permissibility information?)
+		
+	evaluate cases for any given site:
+		site entirely within nonshared sequence, with or without mismatch required - you just have a CAPS primer, you're done.
+		site partially within nonshared sequence in one sequence but not another, with or without mismatch required - you have your dCAPS primer
+		site entirely within shared sequence - no CAPS or dCAPS primer possible
+	
+	if none, increase permissible mismatch number
+	
+output all possible CAPS/dCAPS primers that differentiate the two sequences
