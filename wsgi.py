@@ -8,13 +8,12 @@ from indCAPS import hammingBool, hamming, revComp, baseNumbers, deltaG, deltaS
 from indCAPS import saltAdjusted, basicTemp, nearestNeighbor, estimateTM
 from indCAPS import lastSharedBase, scanUnshared, scanSequence, evaluateSites
 from indCAPS import generatePrimer, compareEnzymes, makePrimer, enzymes
-from enzymes import enzymes
+from indCAPS import enzymes
 
 # Set up Flask stuff
 app = Flask(__name__)
 #app.config.from_object(os.environ['APP_SETTINGS'])
 app.jinja_env.trim_blocks = True
-
 
 @app.route('/', methods=['GET','POST'])
 def index():
