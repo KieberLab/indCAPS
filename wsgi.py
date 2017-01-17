@@ -8,15 +8,15 @@ from indCAPS import lastSharedBase, scanUnshared, scanSequence, evaluateSites
 from indCAPS import generatePrimer, compareEnzymes, makePrimer, enzymes
 
 # Set up Flask stuff
-app = Flask(__name__)
+application = Flask(__name__)
 #app.config.from_object(os.environ['APP_SETTINGS'])
-app.jinja_env.trim_blocks = True
+application.jinja_env.trim_blocks = True
 
-@app.route('/', methods=['GET','POST'])
+@application.route('/', methods=['GET','POST'])
 def index():
 	return(render_template('index.html'))
 		
-@app.route('/results', methods=['GET','POST'])
+@application.route('/results', methods=['GET','POST'])
 def results():
 	seq1 = False
 	seq2 = False
@@ -47,4 +47,4 @@ def results():
 	return(render_template('results.html',allResults=allResults))
 	
 if __name__ == '__main__':
-	app.run(debug="True")
+	application.run()
