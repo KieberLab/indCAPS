@@ -1,5 +1,5 @@
 #!/usr/bin/env python2
-
+# -*- coding: utf-8 -*-
 #seq1 = 'GCGGAgggcccCTCAAGATCCCGAGTgggTCTTATcccCAGTTTCTTGGCTCTGTTA' #arguments[1]
 #seq2 = 'GCGGAgggcccCTCAAGATCCCGAGTgggcccCAGTTTCTTGGCTCTGTTA' #arguments[2]
 #currentMotif = 'gggccc'
