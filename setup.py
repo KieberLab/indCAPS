@@ -6,5 +6,5 @@ setup(name='indCAPS',
       description='OpenShift App',
       author='Charles Hodgens',
       author_email='hodgens@email.unc.edu',
-      install_requires=['Flask==0.7.2'],
+      install_requires=['Flask==0.10.1'],
      )

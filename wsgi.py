@@ -50,4 +50,4 @@ def results():
 	return(render_template('results.html',allResults=allResults))
 	
 if __name__ == '__main__':
-	app.run()
+	app.run(debug="True")
