@@ -1,6 +1,5 @@
 #!/usr/bin/env python2
 import warnings
-#import requests
 from math import log
 from flask import Flask, render_template, request
 from indCAPS import hammingBool, hamming, revComp, baseNumbers, deltaG, deltaS
