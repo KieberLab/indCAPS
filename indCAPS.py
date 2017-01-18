@@ -4,6 +4,7 @@
 #seq2 = 'GCGGAgggcccCTCAAGATCCCGAGTgggcccCAGTTTCTTGGCTCTGTTA' #arguments[2]
 #currentMotif = 'gggccc'
 hamNum = 4 #arguments[3]
+from math import log
 
 # Sample sequences from Leah
 seq1 = "TGTGTGTGCAGGGAGAAGCCAAATGTGGATTTTGACAGGGTGGACTCGTATGTGCATCAG"
