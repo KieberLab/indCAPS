@@ -5,6 +5,12 @@
 <link rel="stylesheet" href="static/custom.css" type="text/css" />
 </head>
 <body>
+indCAPS (indy-caps)
+This is a tool for generating primers suitable for CAPS or dCAPS analyses of sites with insertions or deletions as well as SNPs.
+
+For this tool, currently you need to supply two sequences. Please supply 25-30 bases on each side of the indel or SNP location (not including the size of the inserted sequence). The sequence on both sides of the indel location should be exactly identical in both sequences.
+
+"Mismatch Max" defines the maximum number of mismatches allowed to modify a site. Right now, this is only partially functional. The mismatch max is used to determine whether a single site can be modified to match a restriction site, but it is not yet compared to the total number of mismatches in the primer. That feature is planned, however.
 <div>
 <form role="form" method="POST" action="{{ url_for('results') }}">
 First Sequence: <input type="text" name="seq1"><br>
@@ -13,6 +19,26 @@ Mismatch Max: <input type="text" name="ham"><br>
 <input type="submit" value="Submit">
 </form>
 </div>
+
+Example output:
+<pre>
+===============================
+Enzyme: DpnII
+Possible cut site found at position [27].
+Problem cut site found at position [16].
+Sequence 1: GCGGAgggcccCTCAAGATCCCGAGTgggTCTTATcccCAGTTTCTTGGCTCTGTTA
+Sequence 2: GCGGAgggcccCTCAAGATCCCGAGTgggcccCAGTTTCTTGGCTCTGTTA
+                                       GATC
+                            ....
+                   gcccCTCAACATCCCGAGTggA
+57.9976921037
+===============================
+</pre>
+The Enzyme name is listed. The possible cut site is the position, moving from the left side of the primer in a 0-based manner, where the proposed cut site is located. "Problem" sites are places on the left side of the indel where an exact match to the enzyme in question can be found. 
+
+The proposed match is shown below the sequences in letters, and any problem sites are shown as "." characters.
+Next, the proposed primer is shown aligned with the sequences. Comparison of the primer with the sequences should show which bases are modified to break problem cut sites or allow new cut sites to be used.
+The melting temperature of the primer is shown last. Currently, all primers are calculated with a target of 58 degrees Celsius. Future versions will allow the user to specify the Tm.
 </body>
 </html>
 
