@@ -6,7 +6,7 @@
 </head>
 <body>
 <div>
-<form role="form" method="POST" action="http://localhost:5000/results">
+<form role="form" method="POST" action="{{ url_for('results') }}">
 First Sequence: <input type="text" name="seq1"><br>
 Second Sequence: <input type="text" name="seq2"><br>
 Mismatch Max: <input type="text" name="ham"><br>
