@@ -863,7 +863,7 @@ def generatePrimer(seq,untenablePositions,desiredSuitable,lastShared,TM,hammingT
 	orientedMotif = list(orientedMotif)
 	currentSite = list(currentSite)
 	for each in range(0,lastShared-desiredSuitable):
-		if orientedMotif[each] in ['g','c','t','a'] and orientedMotif[each] != currentSite[each]:
+		if orientedMotif[each].lower() in ['g','c','t','a'] and orientedMotif[each].lower() != currentSite[each].lower():
 			currentSite[each] = orientedMotif[each]
 	orientedMotif = ''.join(orientedMotif)
 	currentSite = ''.join(currentSite)
