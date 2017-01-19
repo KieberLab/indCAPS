@@ -12,7 +12,8 @@ For this tool, currently you need to supply two sequences. Please supply 25-30 b
 
 "Mismatch Max" defines the maximum number of mismatches allowed to modify a site. Right now, this is only partially functional. The mismatch max is used to determine whether a single site can be modified to match a restriction site, but it is not yet compared to the total number of mismatches in the primer. That feature is planned, however.
 
-
+<br>
+<br>
 <div>
 Identification of CAPS or dCAPS primers for known mutations.
 <form role="form" method="POST" action="{{ url_for('results') }}">
@@ -22,7 +23,8 @@ Mismatch Max: <input type="text" name="ham"><br>
 <input type="submit" value="Submit">
 </form>
 </div>
-
+<br>
+<br>
 <div>
 Identification of CAPS or dCAPS primers for screening purposes (non-functional, placeholder form).
 <form role="form" method="POST" action="{{url_for('screening') }}">
@@ -32,7 +34,8 @@ Organism: <input type="text" name="org"><br>
 Cutoff percent: <input type="text" name="cutoffPercent"><br>
 </form>
 </div>
-
+<br>
+<br>
 Example output:
 <pre>
 
@@ -48,6 +51,8 @@ Sequence 2: GCGGAgggcccCTCAAGATCCCGAGTgggcccCAGTTTCTTGGCTCTGTTA
 57.9976921037
 ===============================
 </pre>
+<br>
+<br>
 The Enzyme name is listed. The possible cut site is the position, moving from the left side of the primer in a 0-based manner, where the proposed cut site is located. "Problem" sites are places on the left side of the indel where an exact match to the enzyme in question can be found. 
 
 The proposed match is shown below the sequences in letters, and any problem sites are shown as "." characters.
