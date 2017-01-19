@@ -5,12 +5,15 @@ from flask import Flask, render_template, request
 from indCAPS import hammingBool, hamming, revComp, baseNumbers, deltaG, deltaS
 from indCAPS import saltAdjusted, basicTemp, nearestNeighbor, estimateTM
 from indCAPS import lastSharedBase, scanUnshared, scanSequence, evaluateSites
-from indCAPS import generatePrimer, crisprEdit, enzymes
+from indCAPS import generatePrimer, crisprEdit
+from enzymeList import enzymes
+from helperFuncs import checkBases, removeWhitespace, evaluateInput
 
 # Set up Flask stuff
 application = Flask(__name__)
 #app.config.from_object(os.environ['APP_SETTINGS'])
 application.jinja_env.trim_blocks = True
+		
 
 @application.route('/', methods=['GET','POST'])
 def index():
@@ -24,6 +27,7 @@ def results():
 	hamDist = False
 	errors = []
 	allResults = []
+	notes = None
 	if request.method == "POST":
 		# Get stuff the user entered
 		try:
@@ -33,6 +37,12 @@ def results():
 		except:
 			errors.append("No sequences provided.")
 		if seq1 and seq2 and hamDist:
+			# Evaluate the input
+			inputEvaluation = evaluateInput(seq1, seq2)
+			seq1 = inputEvaluation[0]
+			seq2 = inputEvaluation[1]
+			notes = inputEvaluation[2]
+			
 			# Call function to evaluate enzymes
 			for eachEnzyme in enzymes:
 				enzymeName = eachEnzyme
@@ -47,7 +57,7 @@ def results():
 			# Assemble output using sites and primers
 			
 			# Display output
-		return(render_template('results.html',allResults=allResults))
+		return(render_template('results.html',allResults=allResults,notes=notes))
 	return(render_template('index.html')) # if you tried to go to the results page on your own rather than being sent by the index, redirect to the index page
 	
 @application.route('/screening', methods=['GET','POST'])

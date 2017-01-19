@@ -5,6 +5,11 @@
 <link rel="stylesheet" href="static/custom.css" type="text/css" />
 </head>
 <body>
+<ul>
+{% for note in notes %}
+<li>{{ note }}</li>
+{% endfor %}
+</ul>
 <div>
 <pre>
 {% for enzymeResult in allResults %}
