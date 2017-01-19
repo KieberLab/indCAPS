@@ -11,7 +11,10 @@ This is a tool for generating primers suitable for CAPS or dCAPS analyses of sit
 For this tool, currently you need to supply two sequences. Please supply 25-30 bases on each side of the indel or SNP location (not including the size of the inserted sequence). The sequence on both sides of the indel location should be exactly identical in both sequences.
 
 "Mismatch Max" defines the maximum number of mismatches allowed to modify a site. Right now, this is only partially functional. The mismatch max is used to determine whether a single site can be modified to match a restriction site, but it is not yet compared to the total number of mismatches in the primer. That feature is planned, however.
+
+
 <div>
+Identification of CAPS or dCAPS primers for known mutations.
 <form role="form" method="POST" action="{{ url_for('results') }}">
 First Sequence: <input type="text" name="seq1"><br>
 Second Sequence: <input type="text" name="seq2"><br>
@@ -20,8 +23,19 @@ Mismatch Max: <input type="text" name="ham"><br>
 </form>
 </div>
 
+<div>
+Identification of CAPS or dCAPS primers for screening purposes (non-functional, placeholder form).
+<form role="form" method="POST" action="{{url_for('screening') }}">
+WT sequence: <input type="text" name="seq"><br>
+Mismatch Max: <input type="text" name="ham"><br>
+Organism: <input type="text" name="org"><br>
+Cutoff percent: <input type="text" name="cutoffPercent"><br>
+</form>
+</div>
+
 Example output:
 <pre>
+
 ===============================
 Enzyme: DpnII
 Possible cut site found at position [27].

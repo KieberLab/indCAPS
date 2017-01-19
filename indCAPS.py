@@ -896,13 +896,27 @@ def generatePrimer(seq,untenablePositions,desiredSuitable,lastShared,TM,hammingT
 	bestPrimer = [primerList[x] for x in range(0,len(outputDiff)) if outputDiff[x] == min(outputDiff)]
 	return(bestPrimer)
 
-
-
-def compareEnzymes(seq1,seq2,enzymes,hammingThreshold):
-	return(None)
-
-def makePrimer(seq1,seq2,enzyme,suitablePositions,untenablePositions,hammingThreshold):
-	return(None)
+def crisprEdit(seq,position,organism):
+	# I'm undecided as of yet whether I should insert an N base for insertions or if I should randomly choose or if I should generate all possible insertions
+	# If I do all possible then that will get very large very quick.
+	# If I randomly choose then my output isn't reproducible
+	# If I do N's, that might work, but my other functions would need retooling
+	output = []
+	seqNew = seq
+	commonEdits =  {"Athaliana":[],
+					"Osativa":[],
+					"Hsapiens":[],
+					"Mmusculus":[]}
+	if organism in ["Athaliana","Osativa","Hsapiens","Mmusculus"]:
+		editsToMake = commonEdits[organism]
+	else:
+		editsToMake = [1,-1,2,-2,3,-3]
+	for eachEdit in editsToMake:
+		if eachEdit > 0:
+			output.append(seqNew)
+		else:
+			output.append(seqNew)
+	return(output)
 
 #for eachEnzyme in enzymes:
 #	enzymeName = eachEnzyme
