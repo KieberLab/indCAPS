@@ -61,7 +61,7 @@ def results():
 			# Assemble output using sites and primers
 			
 			# Display output
-		return(render_template('results.html',allResults=allResults,notes=notes))
+			return(render_template('results.html',allResults=allResults,notes=notes))
 	return(render_template('index.html')) # if you tried to go to the results page on your own rather than being sent by the index, redirect to the index page
 	
 @application.route('/screening', methods=['GET','POST'])
