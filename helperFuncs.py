@@ -18,7 +18,10 @@ def removeWhitespace(seqToTest):
 
 def nonBasePresent(seqToTest):
 	# Returns true if there are non-bases
-	return(any([x in ['g','c','a','t','r','y','s','w','k','m','b','d','h','v','n'] for x in seqToTest.lower()]))
+	if seqToTest == None:
+		return(True)
+	else:
+		return(any([x in ['g','c','a','t','r','y','s','w','k','m','b','d','h','v','n'] for x in seqToTest.lower()]))
 
 def evaluateInput(seq1,seq2=None):
 	# Returns [seq1,seq2,notes] where notes is a list of warnings and notes on modifications
