@@ -28,7 +28,7 @@ def results():
 	hamDist = False
 	errors = []
 	allResults = []
-	notes = None
+	notes = []
 	if request.method == "POST":
 		# Get stuff the user entered
 		try:
@@ -37,10 +37,10 @@ def results():
 			hamDist = int(bleach.clean(request.form['ham']))
 		except:
 			errors.append("No sequences provided or Mismatch Match missing.")
-			return(render_template('results.html',allResults=None,notes=errors))
+			return(render_template('results.html',allResults=[],notes=errors))
 		if seq1 and seq2 and hamDist:
 			if nonBasePresent(seq1) or nonBasePresent(seq2):
-				return(render_template('results.html',allResults=None,notes=["Non-bases included in input."]))
+				return(render_template('results.html',allResults=[],notes=["Non-bases included in input."]))
 			# Evaluate the input
 			inputEvaluation = evaluateInput(seq1, seq2)
 			seq1 = inputEvaluation[0]
