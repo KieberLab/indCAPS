@@ -8,6 +8,7 @@ from indCAPS import lastSharedBase, scanUnshared, scanSequence, evaluateSites
 from indCAPS import generatePrimer, crisprEdit
 from enzymeList import enzymes
 from helperFuncs import checkBases, removeWhitespace, evaluateInput
+import bleach
 
 # Set up Flask stuff
 application = Flask(__name__)
@@ -31,9 +32,9 @@ def results():
 	if request.method == "POST":
 		# Get stuff the user entered
 		try:
-			seq1 = request.form['seq1']
-			seq2 = request.form['seq2']
-			hamDist = int(request.form['ham'])
+			seq1 = bleach.clean(request.form['seq1'])
+			seq2 = bleach.clean(request.form['seq2'])
+			hamDist = int(bleach.clean(request.form['ham']))
 		except:
 			errors.append("No sequences provided.")
 		if seq1 and seq2 and hamDist:
