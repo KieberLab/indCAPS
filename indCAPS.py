@@ -15,11 +15,6 @@ seq2 = "TGTGTGTGCAGGGAGAAGCCAAATGTGGATTTGACAGGGTGGACTCGTATGTGCATCAG"
 # Also does not include two-site cutters: BaeI, BsaXI, CspCI, BcgI
 from enzymeList import enzymes
 
-## Errors to Check For
-# Non-bases in input
-# Cut site outside amplicon
-													
-
 ## Custom Functions
 		
 def hammingBool(seq1,seq2,allResults=False):

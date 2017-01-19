@@ -7,7 +7,7 @@ from indCAPS import saltAdjusted, basicTemp, nearestNeighbor, estimateTM
 from indCAPS import lastSharedBase, scanUnshared, scanSequence, evaluateSites
 from indCAPS import generatePrimer, crisprEdit
 from enzymeList import enzymes
-from helperFuncs import checkBases, removeWhitespace, evaluateInput
+from helperFuncs import checkBases, removeWhitespace, evaluateInput, nonBasePresent
 import bleach
 
 # Set up Flask stuff
@@ -38,6 +38,8 @@ def results():
 		except:
 			errors.append("No sequences provided.")
 		if seq1 and seq2 and hamDist:
+			if nonBasePresent(seq1) or nonBasePresent(seq2):
+				return(render_template('results.html',allResults=None,notes=["Non-bases included in input."]))
 			# Evaluate the input
 			inputEvaluation = evaluateInput(seq1, seq2)
 			seq1 = inputEvaluation[0]
