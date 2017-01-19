@@ -5,12 +5,12 @@
 <link rel="stylesheet" href="static/custom.css" type="text/css" />
 </head>
 <body>
-indCAPS (indy-caps)
-This is a tool for generating primers suitable for CAPS or dCAPS analyses of sites with insertions or deletions as well as SNPs.
+<p>indCAPS (indy-caps)</p>
+<p>This is a tool for generating primers suitable for CAPS or dCAPS analyses of sites with insertions or deletions as well as SNPs.</p>
 
-For this tool, currently you need to supply two sequences. Please supply 25-30 bases on each side of the indel or SNP location (not including the size of the inserted sequence). The sequence on both sides of the indel location should be exactly identical in both sequences.
+<p>For this tool, currently you need to supply two sequences. Please supply 25-30 bases on each side of the indel or SNP location (not including the size of the inserted sequence). The sequence on both sides of the indel location should be exactly identical in both sequences.</p>
 
-"Mismatch Max" defines the maximum number of mismatches allowed to modify a site. Right now, this is only partially functional. The mismatch max is used to determine whether a single site can be modified to match a restriction site, but it is not yet compared to the total number of mismatches in the primer. That feature is planned, however.
+<p>"Mismatch Max" defines the maximum number of mismatches allowed to modify a site. Right now, this is only partially functional. The mismatch max is used to determine whether a single site can be modified to match a restriction site, but it is not yet compared to the total number of mismatches in the primer. That feature is planned, however.</p>
 
 <br>
 <br>
@@ -52,12 +52,11 @@ Sequence 2: GCGGAgggcccCTCAAGATCCCGAGTgggcccCAGTTTCTTGGCTCTGTTA
 ===============================
 </pre>
 <br>
-<br>
-The Enzyme name is listed. The possible cut site is the position, moving from the left side of the primer in a 0-based manner, where the proposed cut site is located. "Problem" sites are places on the left side of the indel where an exact match to the enzyme in question can be found. 
+<p>The Enzyme name is listed. The possible cut site is the position, moving from the left side of the primer in a 0-based manner, where the proposed cut site is located. "Problem" sites are places on the left side of the indel where an exact match to the enzyme in question can be found. </p>
 
-The proposed match is shown below the sequences in letters, and any problem sites are shown as "." characters.
-Next, the proposed primer is shown aligned with the sequences. Comparison of the primer with the sequences should show which bases are modified to break problem cut sites or allow new cut sites to be used.
-The melting temperature of the primer is shown last. Currently, all primers are calculated with a target of 58 degrees Celsius. Future versions will allow the user to specify the Tm.
+<p>The proposed match is shown below the sequences in letters, and any problem sites are shown as "." characters.</p>
+<p>Next, the proposed primer is shown aligned with the sequences. Comparison of the primer with the sequences should show which bases are modified to break problem cut sites or allow new cut sites to be used.</p>
+<p>The melting temperature of the primer is shown last. Currently, all primers are calculated with a target of 58 degrees Celsius. Future versions will allow the user to specify the Tm.</p>
 </body>
 </html>
 
