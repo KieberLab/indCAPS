@@ -12,7 +12,7 @@ def checkBases(seqToTest):
 def removeWhitespace(seqToTest):
 	changed = False
 	if any([x in ['\t',' '] for x in seqToTest]):
-		seqToTest = ''.join([x for x in "gcat tacg" if x not in ['\t', ' ']])
+		seqToTest = ''.join([x for x in seqToTest if x not in ['\t', ' ']])
 		changed = True
 	return([seqToTest,changed])
 
