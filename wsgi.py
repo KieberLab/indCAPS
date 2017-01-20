@@ -47,11 +47,13 @@ def results():
 			seq2 = inputEvaluation[1]
 			notes = inputEvaluation[2]
 			
+			TM = 58
+			
 			# Call function to evaluate enzymes
 			for eachEnzyme in enzymes:
 				enzymeName = eachEnzyme
 				enzymeValue = enzymes[eachEnzyme]
-				enzymeResults = evaluateSites(seq1,seq2,enzymeValue,hamDist, enzymeName)
+				enzymeResults = evaluateSites(seq1,seq2,enzymeValue,hamDist,enzymeName,TM)
 				if enzymeResults is not None:
 					allResults.append(enzymeResults)
 			# Call function to generate primers

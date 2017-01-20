@@ -461,9 +461,35 @@ def scanSequence(seq1,seq2,currentMotif,direction,hammingThreshold):
 #			print(currentMotif)
 		return([untenablePositions,suitablePositions])
 
+def evaluateMutations(seq,altSeqs,seqThreshold,enzymeDict,hammingThreshold,enzymeName,TM):
+	# TODO: are they the same last shared base from each side?
+	seqNum = len(altSeqs)
+	for eachEnzyme in enzymeDict:
+		enzymeInfo = enzymeDict[eachEnzyme]
+		enzymeName = eachEnzyme
+		currentMotif = enzymeInfo[0]
+		rightSeqNum = 0
+		leftSeqNum = 0
+		rightSeqs = []
+		leftSeqs = []
+		for eachSequence in altSeqs:
+			sitesLeft = scanSequence(seq,eachSequence,currentMotif,'left',hammingThreshold)
+			sitesRight = scanSequence(seq,eachSequence,currentMotif,'right',hammingThreshold)
+			if sitesLeft[1] != []:
+				leftSeqNum += 1
+				leftSeqs.append(sitesLeft)
+			if sitesRight[1] != []:
+				rightSeqNum += 1
+				rightSeqs.append(sitesRight)
+		if (rightSeqNum/seqNum) >= seqThreshold:
+			x=1
+			# print output
+		if (leftSeqNum/seqNum) >= seqThreshold:
+			x=1
+			# print output
+	return(None)
 
-	
-def evaluateSites(seq1,seq2,enzymeInfo,hammingThreshold,enzymeName):
+def evaluateSites(seq1,seq2,enzymeInfo,hammingThreshold,enzymeName,TM):
 	# This calls scanSequence(), which returns a two-element list of form:
 	# [untenable positions, suitable positions]
 	# Untenable positions are positions in the upstream shared region where there is an exact match
@@ -531,7 +557,7 @@ def evaluateSites(seq1,seq2,enzymeInfo,hammingThreshold,enzymeName):
 			# TODO: Make sure this is correct
 			currentLastShared = lastSharedBase(currentSeq1,currentSeq2,'left')
 			for eachIndex in currentSet[1]:
-				newPrimer = generatePrimer(currentSeq1,currentSet[0],eachIndex,currentLastShared,58,hammingThreshold,currentMotif)
+				newPrimer = generatePrimer(currentSeq1,currentSet[0],eachIndex,currentLastShared,TM,hammingThreshold,currentMotif)
 				currentOut.append(" "*(12+currentLastShared-len(newPrimer[0]))+newPrimer[0])
 				currentOut.append(estimateTM(newPrimer[0]))
 			output.append(currentOut)
