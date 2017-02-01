@@ -610,11 +610,22 @@ def evaluateSites(seq1,seq2,enzymeInfo,hammingThreshold,enzymeName,TM):
 				currentOut.append("CAPS primer possible")
 			# TODO: Make sure this is correct
 			currentLastShared = lastSharedBase(currentSeq1,currentSeq2,'left')
+			rejectedPrimers = 0
 			for eachIndex in currentSet[1]:
 				newPrimer = generatePrimer(currentSeq1,currentSet[0],eachIndex,currentLastShared,TM,hammingThreshold,currentMotif)
+				lastPrimerBase = newPrimer[0][-1]
+				lastSeqBase = currentSeq1[currentLastShared-1]
+				
+				# Test to see if the last base is a mismatch
+				if hamming(lastPrimerBase,lastSeqBase,allResults=False,allComparisons=False) > 0:
+					rejectedPrimers += 1
+					continue
 				currentOut.append(" "*(12+currentLastShared-len(newPrimer[0]))+newPrimer[0])
 				currentOut.append(estimateTM(newPrimer[0]))
 			output.append(currentOut)
+			# If there's not at least one primer that works, just return None
+			if rejectedPrimers == len(currentSet[1]):
+				return(None)
 			return(output)
 
 
