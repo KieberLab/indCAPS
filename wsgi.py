@@ -35,6 +35,7 @@ def results():
 			seq1 = bleach.clean(request.form['seq1'])
 			seq2 = bleach.clean(request.form['seq2'])
 			hamDist = int(bleach.clean(request.form['ham']))
+			TM = int(bleach.clean(request.form['tm']))
 		except:
 			errors.append("No sequences provided or Mismatch Match missing.")
 			return(render_template('results.html',allResults=[],notes=errors))
@@ -46,8 +47,6 @@ def results():
 			seq1 = inputEvaluation[0]
 			seq2 = inputEvaluation[1]
 			notes = inputEvaluation[2]
-			
-			TM = 58
 			
 			# Call function to evaluate enzymes
 			for eachEnzyme in enzymes:
@@ -68,8 +67,27 @@ def results():
 	
 @application.route('/screening', methods=['GET','POST'])
 def screening():
-	allResults = None
-	return(render_template('results.html',allResults=allResults))
+	errors = []
+	seq = ""
+	hamDist = 0
+	TM = 58
+	cutoffPercent = 0
+	organism = "Athaliana"
+	if request.method == "POST":
+		# Get stuff the user entered
+		try:
+			seq = bleach.clean(request.form['seq'])
+			hamDist = int(bleach.clean(request.form['ham']))
+			cutoffPercent = int(bleach.clean(request.form['cutoffPercent']))
+			organism = int(bleach.clean(request.form['org']))
+			TM = int(bleach.clean(request.form['tm']))
+		except:
+			errors.append("No sequences provided or Mismatch Match missing.")
+			return(render_template('results.html',allResults=[],notes=errors))
+		if seq and hamDist and TM:
+			mutationResults = None#evaluateMutations(seq,altSeqs,seqThreshold,enzymeDict,hammingThreshold,enzymeName,TM)
+			return(render_template('results.html',allResults=mutationResults))
+	return(render_template('index.html',allResults=[]))
 
 if __name__ == '__main__':
 	application.run()

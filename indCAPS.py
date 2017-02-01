@@ -21,6 +21,60 @@ def hammingBool(seq1,seq2,allResults=False):
 	# Instead of returning a singular value, returns lists of bools indicating whether there's a match
 	return(False)
 	
+def proportionalDistance(mut,motif):
+	# Mut will have X characters.
+	# Returns assessment of most optimistic match and also proportion of all matches that it will match
+	
+	possibleMatches = {'a':['a','r','w','m','d','h','v','n'],
+				  'g':['g','r','s','k','b','d','v','n'],
+				  'c':['c','y','s','m','b','h','v','n'],
+				  't':['t','y','w','k','b','d','h','n'],
+				  'r':['a','g','n'],
+				  'y':['c','t','n'],
+				  's':['g','c','n'],
+				  'w':['a','t','n'],
+				  'k':['g','t','n'],
+				  'm':['a','c','n'],
+				  'b':['c','g','t','n'],
+				  'd':['a','g','t','n'],
+				  'h':['a','c','t','n'],
+				  'v':['a','c','g','n'],
+				  'n':['a','g','c','t','r','y','s','w','k','m','b','d','h','v','n']}
+	
+	mut = mut.lower()
+	motif = motif.lower()
+	
+	sets = [ [mut,motif] , [revComp(mut),motif] , [mut, revComp(motif)] ]
+	
+	setOutput = [0,0] * len(sets)
+	
+	for eachSet in sets:
+		currentMut = eachSet[0]
+		currentMotif = eachSet[1]
+		currentHam = 0
+		currentProp = 1
+		for eachPos in range(0,len(currentMut)):
+			mutBase = currentMut[eachPos]
+			motifBase = currentMotif[eachPos]
+			
+			if mutBase == "x":
+				if mutBase in ['g','c','a','t']:
+					currentProp = currentProp * 1/4
+				
+				elif mutBase in ['r','y','s','w','k','m']:
+					currentProp = currentProp * 1/2
+				
+				elif mutBase in ['b','d','h','v']:
+					currentProp = currentProp * 3/4
+				
+				elif mutBase == "n":
+					return(None)
+				
+			else:
+				return(None)
+				
+	return(None)
+	
 def hamming(seq1,seq2,allResults=False,allComparisons=True):
 	# Calculates the hamming distance between two equal-length sequences
 	# Expects a character string, will complain if it doesn't get it
