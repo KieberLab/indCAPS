@@ -36,6 +36,7 @@ def results():
 			seq2 = bleach.clean(request.form['seq2'])
 			hamDist = int(bleach.clean(request.form['ham']))
 			TM = int(bleach.clean(request.form['tm']))
+			allowMisMatch = bleach.clean(request.form['allowMM'])
 		except:
 			errors.append("No sequences provided or Mismatch Match missing.")
 			return(render_template('results.html',allResults=[],notes=errors))

@@ -608,28 +608,26 @@ def evaluateSites(seq1,seq2,enzymeInfo,hammingThreshold,enzymeName,TM):
 			
 			if 0 in motifDiff1 or 0 in motifDiff2:
 				currentOut.append("CAPS primer possible")
-			# TODO: Make sure this is correct
+			
 			currentLastShared = lastSharedBase(currentSeq1,currentSeq2,'left')
 			rejectedPrimers = 0
 			for eachIndex in currentSet[1]:
 				newPrimer = generatePrimer(currentSeq1,currentSet[0],eachIndex,currentLastShared,TM,hammingThreshold,currentMotif)
-				lastPrimerBase = newPrimer[0][-1]
-				lastSeqBase = currentSeq1[currentLastShared-1]
-				
-				# Test to see if the last base is a mismatch
-				if hamming(lastPrimerBase,lastSeqBase,allResults=False,allComparisons=False) > 0:
+				if newPrimer is not None:
+					lastPrimerBase = newPrimer[0][-1]
+					lastSequenceBase = currentSeq1[currentLastShared-1]
+					currentOut.append(" "*(12+currentLastShared-len(newPrimer[0]))+newPrimer[0])
+					currentOut.append(estimateTM(newPrimer[0]))
+				else:
 					rejectedPrimers += 1
 					continue
-				currentOut.append(" "*(12+currentLastShared-len(newPrimer[0]))+newPrimer[0])
-				currentOut.append(estimateTM(newPrimer[0]))
 			output.append(currentOut)
-			# If there's not at least one primer that works, just return None
 			if rejectedPrimers == len(currentSet[1]):
 				return(None)
 			return(output)
 
 
-def generatePrimer(seq,untenablePositions,desiredSuitable,lastShared,TM,hammingThreshold,currentMotif):
+def generatePrimer(seq,untenablePositions,desiredSuitable,lastShared,TM,hammingThreshold,currentMotif,allowGTMM=False):
 	# TM is a value for Degree C
 	# Start the primer at the last shared base
 	# If the last shared base is a mismatch to the motif, check the rules for that
@@ -646,6 +644,7 @@ def generatePrimer(seq,untenablePositions,desiredSuitable,lastShared,TM,hammingT
 	# Example: in one case, it modified a GGGCCC site to be GAGCCC, but the primer the function reported
 	# Didn't even have a valid GGGCCC site, because the first base in the primer was partway through that sequence
 	
+	originalSeq = seq
 	motifLen = len(currentMotif)
 	currentStart = lastShared
 	primerList = []
@@ -710,11 +709,6 @@ def generatePrimer(seq,untenablePositions,desiredSuitable,lastShared,TM,hammingT
 	seqRight = seq[(desiredSuitable+motifLen):]
 	seq = seqLeft + currentSite + seqRight
 	
-	# See if the primer violates any rules
-	# TODO: rule check
-	# Rule: G/T mismatch works at 3' end, but G/A and G/G mismatches don't. (Simsek 2000)
-	# Rule: Mismatches to canonical shared sequence less than hamming dist
-	
 	# Generate primer sub-sequences
 	while currentStart > 0:
 		currentPrimer = seq[currentStart:lastShared]
@@ -733,7 +727,30 @@ def generatePrimer(seq,untenablePositions,desiredSuitable,lastShared,TM,hammingT
 	outputDiff = [abs(x - TM) for x in output]
 	# Choose the best primer sub-sequence based on difference from optimum Tm
 	bestPrimer = [primerList[x] for x in range(0,len(outputDiff)) if outputDiff[x] == min(outputDiff)]
-	return(bestPrimer)
+	
+	# See if the primer violates any rules
+	# TODO: rule check
+	# Rule: G/T mismatch works at 3' end, but G/A and G/G mismatches don't. (Simsek 2000)
+	# Rule: Mismatches to canonical shared sequence less than hamming dist
+	lastPrimerBase = bestPrimer[-1].lower()
+	lastSeqBase = originalSeq[lastShared-1]
+	if lastPrimerBase != lastSeqBase and allowGTMM == True:
+		# get the template base, which is the complement of the listed base
+		templateBase = revComp(lastSeqBase)
+		templateBase = templateBase.lower()
+		# compare to the 3' base
+		# if template is G and primer 3' is T, ok.
+		# Allowable: T/T, T/C, T/G
+		if templateBase == 'g' and lastPrimerBase == 't':
+			return(bestPrimer)
+		elif templateBase == 't' and lastPrimerBase in ['t','c','g']:
+			return(bestPrimer)
+		else:
+			return(None)
+	elif lastPrimerBase != lastSeqBase and allowGTMM == False:
+		return(None)
+	else:
+		return(bestPrimer)
 
 def crisprEdit(seq,position,organism):
 	# I'm undecided as of yet whether I should insert an N base for insertions or if I should randomly choose or if I should generate all possible insertions
