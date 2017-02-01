@@ -19,8 +19,8 @@ Identification of CAPS or dCAPS primers for known mutations.
 <form role="form" method="POST" action="{{ url_for('results') }}">
 First Sequence: <input type="text" name="seq1"><br>
 Second Sequence: <input type="text" name="seq2"><br>
-Mismatch Max: <input type="text" name="ham"><br>
-Melting Temperature: <input type="text" name="tm"><br>
+Mismatch Max: <input type="text" name="ham" value="1"><br>
+Melting Temperature: <input type="text" name="tm" value="60"><br>
 <input type="submit" value="Submit">
 </form>
 </div>
@@ -30,10 +30,10 @@ Melting Temperature: <input type="text" name="tm"><br>
 Identification of CAPS or dCAPS primers for screening purposes (non-functional, placeholder form).
 <form role="form" method="POST" action="{{url_for('screening') }}">
 WT sequence: <input type="text" name="seq"><br>
-Mismatch Max: <input type="text" name="ham"><br>
-Organism: <input type="text" name="org"><br>
-Cutoff percent: <input type="text" name="cutoffPercent"><br>
-Melting Temperature: <input type="text" name="tm"><br>
+Mismatch Max: <input type="text" name="ham" value="1"><br>
+Organism: <input type="text" name="org" value="generic"><br>
+Cutoff percent: <input type="text" name="cutoffPercent" value="0.1"><br>
+Melting Temperature: <input type="text" name="tm" value="60"><br>
 <input type="submit" value="Submit">
 </form>
 </div>
