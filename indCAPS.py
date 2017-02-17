@@ -1,6 +1,7 @@
 #!/usr/bin/env python2
 """@package indCAPS
-Examine multiple strings representing DNA bases for cases where diagnostic PCR primers can be constructed to distinguish the strings.
+Examine multiple strings representing DNA bases for cases where 
+diagnostic PCR primers can be constructed to distinguish the strings.
 """
 # -*- coding: utf-8 -*-
 #seq1 = 'GCGGAgggcccCTCAAGATCCCGAGTgggTCTTATcccCAGTTTCTTGGCTCTGTTA' #arguments[1]
@@ -149,7 +150,8 @@ def hamming(seq1,seq2,allResults=False,allComparisons=True):
 
 def revComp(seq1):
 	"""
-	Takes a string with valid DNA bases (including degenerate bases) and returns the reverse complement.
+	Takes a string with valid DNA bases (including degenerate bases) 
+	and returns the reverse complement.
 	
 	Input
 	seq1 = string of valid DNA bases
@@ -448,7 +450,11 @@ def scanUnshared(seq,currentMotif,lastShared,lastSharedReverse,hammingThreshold)
 
 def scanSequence(seq1,seq2,currentMotif,direction,hammingThreshold):
 	"""
-	This is going to scan the sequence from left to right, with the assumption that left is the 5' side of the primer and anything right is the downstream direction. If 'right' is specified as the direction, the sequence is reversed before processing.
+	This is going to scan the sequence from left to right, 
+	with the assumption that left is the 5' side of the primer 
+	and anything right is the downstream direction. If 'right' 
+	is specified as the direction, the sequence is reversed 
+	before processing.
 	
 	Input
 	
@@ -742,13 +748,19 @@ def putativePrimer(seq,lastShared,TM,minLength=30,type="tm"):
 
 def generatePrimer(seq,untenablePositions,desiredSuitable,lastShared,TM,hammingThreshold,currentMotif,allowGTMM=False):
 	"""
-	Generates primer for a given sequence and checks it for errors.
+	Generates primer for a given sequence and checks 
+	it for errors.
 	
 	Input
 	seq = string of valid DNA bases
-	untenablePositions = list of integers, indicating exact matches of the restriction enzyme motif which must be killed with mismatches
-	desiredSuitable = integer, starting position of the restriction enzyme recognition site
-	lastShared = integer, position of the last shared base between two sequences. Primer will start here and move backwards
+	untenablePositions = list of integers, indicating 
+	exact matches of the restriction enzyme motif which 
+	must be killed with mismatches
+	desiredSuitable = integer, starting position of the 
+	restriction enzyme recognition site
+	lastShared = integer, position of the last shared base 
+	between two sequences. Primer will start here and move 
+	backwards.
 	TM = Integer, target melting temperature for the primer in celsius
 	hammingThreshold = Integer, for mismatch threshold for checking the primer against native sequence
 	currentMotif = string of the restriction enzyme recognition motif to search for
@@ -882,7 +894,9 @@ def generatePrimer(seq,untenablePositions,desiredSuitable,lastShared,TM,hammingT
 
 def crisprEdit(seq,position,organism):
 	"""
-	Top-level function that searches a sequence to be edited with CRISPR/Cas9 methods for sites likely to be usable as screening sites.
+	Top-level function that searches a sequence to be 
+	edited with CRISPR/Cas9 methods for sites likely to be 
+	usable as screening sites.
 	
 	Input
 	seq = string of valid DNA bases
