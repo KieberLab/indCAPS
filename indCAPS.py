@@ -40,7 +40,12 @@ class SettingsObject:
 		self.ampliconLength = ampliconLength
 		self.primerType = primerType
 		self.primerLength = primerLength
-		self.allowMismatch = allowMismatch
+		if allowMismatch == 'yes':
+			self.allowMismatch = True
+		elif allowMismatch == 'no':
+			self.allowMismatch = False
+		else:
+			self.allowMismatch = False
 		self.hammingThreshold = hammingThreshold
 		self.organism = organism
 		self.sodiumConc = sodiumConc
@@ -505,7 +510,7 @@ def scanSequence(seq1,seq2,currentMotif,direction):
 		seq1 = revComp(seq1)
 		seq2 = revComp(seq2)
 		lastShared = 0 - lastShared
-		lastSharedReverse = 0 - lastSharedReverse # FIXME: the indices are getting fucked on this reversal step
+		lastSharedReverse = 0 - lastSharedReverse # FIXME: i think the indices are getting fucked on this reversal step
 	
 	untenablePositions = []
 	suitablePositions = []
@@ -519,12 +524,13 @@ def scanSequence(seq1,seq2,currentMotif,direction):
 	# Check the left shared region for the presence of the motif
 	
 	# Get a prospective primer length
-	# TODO pass TM down from higher scopes to this function
-	# TODO pass minLength down from higher scopes to this function
-	# TODO pass primer choice type down from higher scopes to this function
 	tempPrimer = putativePrimer(seq1,lastShared)
 	primerCutoff = lastShared - len(tempPrimer[0])
-
+	
+	# Worried about edge cases here
+	if primerCutoff < motifLen:
+		primerCutoff = 0
+	
 	for eachPosition in range(primerCutoff,lastShared - motifLen):
 		currentRegion1 = seq1[eachPosition : motifLen + eachPosition]
 		currentRegion2 = seq2[eachPosition : motifLen + eachPosition]
@@ -546,11 +552,13 @@ def scanSequence(seq1,seq2,currentMotif,direction):
 	rightLastShared = abs(lastSharedReverse)
 	rightSharedMotif = False
 	
-	# TODO pass ampliconLength down from higher scope to this function
-	ampliconLength = 60
 	# Figure out limit of right side
-	rightSideCutoff = max(0,rightLastShared - ampliconLength - len(tempPrimer[0]))
-	
+	# TODO: check to make sure this isn't fucked
+	ampliconEnd = lastShared + Settings.ampliconLength + motifLen
+	if ampliconEnd > min(len(seq1),len(seq2)):
+		rightSideCutoff = 0
+	else:
+		rightSideCutoff = min(len(seq1),len(seq2)) - ampliconEnd # TODO: make sure I don't have a fencepost error here
 	
 	for eachPosition in range(rightSideCutoff,rightLastShared-motifLen):
 		currentRightRegion1 = rightSeq1[eachPosition : motifLen + eachPosition]
@@ -833,7 +841,7 @@ def evaluateSites(seq1,seq2,enzymeInfo,enzymeName):
 			for eachIndex in currentSet[0]:
 				currentOut.append(" "*(12+eachIndex) + "."*len(currentMotif))
 			
-			# FIXME: Why isn't this in the scope where I define the motifDiff objects?
+			# FIXME: Does this need to be in the scope where I define the motifDiff objects?
 			if 0 in motifDiff1 or 0 in motifDiff2:
 				currentOut.append("CAPS primer possible")
 			
@@ -841,6 +849,7 @@ def evaluateSites(seq1,seq2,enzymeInfo,enzymeName):
 			rejectedPrimers = 0
 			for eachIndex in currentSet[1]:
 				newPrimer = generatePrimer(currentSeq1,currentSet[0],eachIndex,currentLastShared,currentMotif)
+				# TODO: check hamdist? or does generatePrimer do that
 				if newPrimer is not None:
 					lastPrimerBase = newPrimer[0][-1]
 					lastSequenceBase = currentSeq1[currentLastShared-1]
@@ -920,14 +929,8 @@ def generatePrimer(seq,untenablePositions,desiredSuitable,lastShared,currentMoti
 	lastShared = integer, position of the last shared base 
 	between two sequences. Primer will start here and move 
 	backwards.
-	TM = Integer, target melting temperature for the 
-		primer in celsius
-	hammingThreshold = Integer, for mismatch threshold 
-		for checking the primer against native sequence
 	currentMotif = string of the restriction enzyme 
 		recognition motif to search for
-	allowGTMM = Boolean, whether to allow GT mismatches 
-		at the 3' end of primers
 	
 	Output
 	bestPrimer = None or string of valid DNA bases
@@ -1004,7 +1007,7 @@ def generatePrimer(seq,untenablePositions,desiredSuitable,lastShared,currentMoti
 		orientedMotif = currentMotif
 	orientedMotif = list(orientedMotif)
 	currentSite = list(currentSite)
-	for each in range(0,lastShared-desiredSuitable):
+	for each in range(0,lastShared-desiredSuitable): # FIXME: think i have a fencepost error here, needs to be lastshared-desiredSuitable+1 I think.
 		if orientedMotif[each].lower() in ['g','c','t','a'] and orientedMotif[each].lower() != currentSite[each].lower():
 			currentSite[each] = orientedMotif[each]
 	orientedMotif = ''.join(orientedMotif)
@@ -1026,6 +1029,7 @@ def generatePrimer(seq,untenablePositions,desiredSuitable,lastShared,currentMoti
 	primerList = [primerList[x] for x in range(0,len(output)) if x not in filterList]
 	output = [output[x] for x in range(0,len(output)) if x not in filterList]
 	
+	# TODO: it always checks primer length based on TM right now, have it switch based on user setting
 	
 	# Find minimum diff
 	outputDiff = [abs(x - Settings.TM) for x in output]
@@ -1033,21 +1037,22 @@ def generatePrimer(seq,untenablePositions,desiredSuitable,lastShared,currentMoti
 	bestPrimer = [primerList[x] for x in range(0,len(outputDiff)) if outputDiff[x] == min(outputDiff)]
 	
 	# See if the primer violates any rules
-	# TODO: rule check
 	# Rule: G/T mismatch works at 3' end, but G/A and G/G mismatches don't. (Simsek 2000)
 	# Rule: Mismatches to canonical shared sequence less than hamming dist
-	lastPrimerBase = bestPrimer[-1].lower()
-	lastSeqBase = originalSeq[lastShared-1]
+	lastPrimerBase = bestPrimer[0][-1].lower()
+	lastSeqBase = originalSeq[lastShared-1] # wait should this just be lastshared and not -1?
 	if lastPrimerBase != lastSeqBase and Settings.allowMismatch == True:
 		# get the template base, which is the complement of the listed base
-		templateBase = revComp(lastSeqBase)
+		templateBase = revComp(lastSeqBase).lower()
 		templateBase = templateBase.lower()
 		# compare to the 3' base
 		# if template is G and primer 3' is T, ok.
 		# Allowable: T/T, T/C, T/G
 		if templateBase == 'g' and lastPrimerBase == 't':
+			print('allowing a mismatching primer')
 			return(bestPrimer)
 		elif templateBase == 't' and lastPrimerBase in ['t','c','g']:
+			print('allowing a mismatching primer')
 			return(bestPrimer)
 		else:
 			return(None)

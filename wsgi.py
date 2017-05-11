@@ -39,16 +39,19 @@ def results():
 		if seq1 and seq2 and hamDist:
 			if helperFuncs.nonBasePresent(seq1) or helperFuncs.nonBasePresent(seq2):
 				return(render_template('results.html',allResults=[],notes=["Non-bases included in input."]))
+			
+			# Define the settings object
+			Settings = indCAPS.SettingsObject(TM=60,ampliconLength=100,primerType='tm',primerLength=30,allowMismatch=allowMisMatch,hammingThreshold=3,organism=None,sodiumConc=0.05,primerConc=50*10**(-9))
+			
+			indCAPS.Settings = Settings
+			helperFuncs.Settings = Settings
+			
 			# Evaluate the input
 			inputEvaluation = helperFuncs.evaluateInput(seq1, seq2)
 			seq1 = inputEvaluation[0]
 			seq2 = inputEvaluation[1]
 			notes = inputEvaluation[2]
-			
-			# Define the settings object
-			Settings = indCAPS.SettingsObject(TM=60,ampliconLength=100,primerType='tm',primerLength=30,allowMismatch=False,hammingThreshold=3,organism=None,sodiumConc=0.05,primerConc=50*10**(-9))
-			
-			indCAPS.Settings = Settings
+
 			
 			# Call function to evaluate enzymes
 			for eachEnzyme in enzymes:
@@ -62,11 +65,7 @@ def results():
 			# But, to be more portable, I need to edit it so that primer returns and site returns are handled by separate functions
 			
 			# Assemble output using sites and primers
-			
-			
 			# Display output
-			print(allResults)
-			print(notes)
 			if allResults == [] or allResults == None:
 				notes.append('No primer candidates. Please consider increasing the mismatch tolerance or altering your desired amplicon length.')
 			return(render_template('results.html',allResults=allResults,notes=notes))

@@ -1,5 +1,5 @@
 #!/usr/bin/env python2
-from indCAPS import lastSharedBase, revComp
+import indCAPS
 
 def checkBases(seqToTest):
 	if all([x in ['g','c','a','t'] for x in seqToTest.lower()]):
@@ -46,8 +46,13 @@ def evaluateInput(seq1,seq2=None):
 		if notes2 is not None:
 			notes.append(notes2)
 
-		lastSharedLeft = lastSharedBase(seq1,seq2,'left')
-		lastSharedRight = lastSharedBase(seq1,seq2,'right')
+		lastSharedLeft = indCAPS.lastSharedBase(seq1,seq2,'left')
+		lastSharedRight = indCAPS.lastSharedBase(seq1,seq2,'right')
+		if lastSharedLeft + Settings.ampliconLength > min(len(seq1),len(seq2)):
+			notes.append('Desired amplicon length will be larger than supplied sequence permits. Exact matches of restriction sites may exist outside borders of supplied sequences.')
+		if lastSharedRight + Settings.ampliconLength > min(len(seq1),len(seq2)):
+			notes.append('Desired amplicon length will be larger than supplied sequence permits. Exact matches of restriction sites may exist outside borders of supplied sequences.')
+		
 		if lastSharedLeft <= 25:
 			notes.append('Less than 25 identical shared bases on the left side of the inputted sequences. Primer design may fail or may not reach sufficient length or Tm.')
 		if lastSharedRight <= 25:
