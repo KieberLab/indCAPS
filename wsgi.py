@@ -2,19 +2,15 @@
 import warnings
 from math import log
 from flask import Flask, render_template, request
-from indCAPS import hammingBool, hamming, revComp, baseNumbers, deltaG, deltaS
-from indCAPS import saltAdjusted, basicTemp, nearestNeighbor, estimateTM
-from indCAPS import lastSharedBase, scanUnshared, scanSequence, evaluateSites
-from indCAPS import generatePrimer, crisprEdit
+import indCAPS
+import helperFuncs
 from enzymeList import enzymes
-from helperFuncs import checkBases, removeWhitespace, evaluateInput, nonBasePresent
 import bleach
 
 # Set up Flask stuff
 application = Flask(__name__)
 #app.config.from_object(os.environ['APP_SETTINGS'])
 application.jinja_env.trim_blocks = True
-		
 
 @application.route('/', methods=['GET','POST'])
 def index():
@@ -41,19 +37,24 @@ def results():
 			errors.append("No sequences provided or Mismatch Match missing.")
 			return(render_template('results.html',allResults=[],notes=errors))
 		if seq1 and seq2 and hamDist:
-			if nonBasePresent(seq1) or nonBasePresent(seq2):
+			if helperFuncs.nonBasePresent(seq1) or helperFuncs.nonBasePresent(seq2):
 				return(render_template('results.html',allResults=[],notes=["Non-bases included in input."]))
 			# Evaluate the input
-			inputEvaluation = evaluateInput(seq1, seq2)
+			inputEvaluation = helperFuncs.evaluateInput(seq1, seq2)
 			seq1 = inputEvaluation[0]
 			seq2 = inputEvaluation[1]
 			notes = inputEvaluation[2]
+			
+			# Define the settings object
+			Settings = indCAPS.SettingsObject(TM=60,ampliconLength=100,primerType='tm',primerLength=30,allowMismatch=False,hammingThreshold=3,organism=None,sodiumConc=0.05,primerConc=50*10**(-9))
+			
+			indCAPS.Settings = Settings
 			
 			# Call function to evaluate enzymes
 			for eachEnzyme in enzymes:
 				enzymeName = eachEnzyme
 				enzymeValue = enzymes[eachEnzyme]
-				enzymeResults = evaluateSites(seq1,seq2,enzymeValue,hamDist,enzymeName,TM)
+				enzymeResults = indCAPS.evaluateSites(seq1,seq2,enzymeValue,enzymeName)
 				if enzymeResults is not None:
 					allResults.append(enzymeResults)
 			# Call function to generate primers
@@ -62,11 +63,12 @@ def results():
 			
 			# Assemble output using sites and primers
 			
+			
 			# Display output
 			print(allResults)
 			print(notes)
 			if allResults == [] or allResults == None:
-				notes.append('No primer candidates. Please consider increasing the mismatch tolerance or altering your desired amplicon length.'
+				notes.append('No primer candidates. Please consider increasing the mismatch tolerance or altering your desired amplicon length.')
 			return(render_template('results.html',allResults=allResults,notes=notes))
 	return(render_template('index.html')) # if you tried to go to the results page on your own rather than being sent by the index, redirect to the index page
 	
@@ -90,7 +92,7 @@ def screening():
 			errors.append("No sequences provided or Mismatch Match missing.")
 			return(render_template('results.html',allResults=[],notes=errors))
 		if seq and hamDist and TM:
-			mutationResults = None#evaluateMutations(seq,altSeqs,seqThreshold,enzymeDict,hammingThreshold,enzymeName,TM)
+			mutationResults = None#indCAPS.evaluateMutations(seq,altSeqs,seqThreshold,enzymeDict,hammingThreshold,enzymeName,TM)
 			return(render_template('results.html',allResults=mutationResults))
 	return(render_template('index.html',allResults=[]))
 
