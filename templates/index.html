@@ -2,40 +2,63 @@
 <html>
 <head>
 <title>indCAPS</title>
-<link rel="stylesheet" href="static/custom.css" type="text/css" />
+<link rel="stylesheet" href="../static/custom.css" type="text/css" />
+<script src="jquery-3.2.1.js"></script>
+<script src="index.js"></script>
 </head>
 <body>
-<p>indCAPS (indy-caps)</p>
-<p>This is a tool for generating primers suitable for CAPS or dCAPS analyses of sites with insertions or deletions as well as SNPs.</p>
-
-<p>For this tool, currently you need to supply two sequences. Please supply 25-30 bases on each side of the indel or SNP location (not including the size of the inserted sequence). The sequence on both sides of the indel location should be exactly identical in both sequences.</p>
-
-<p>"Mismatch Max" defines the maximum number of mismatches allowed to modify a site. Right now, this is only partially functional. The mismatch max is used to determine whether a single site can be modified to match a restriction site, but it is not yet compared to the total number of mismatches in the primer. That feature is planned, however.</p>
+<center><big><p>indCAPS (indy-caps)</p></big></center>
 
 <br>
 <br>
 <div>
 Identification of CAPS or dCAPS primers for known mutations.
-<form role="form" method="POST" action="{{ url_for('results') }}">
+<br>
+<br>
+<form role="form" class="elegant-aero" method="POST" action="{{ url_for('results') }}">
 First Sequence: <input type="text" name="seq1"><br>
 Second Sequence: <input type="text" name="seq2"><br>
-Mismatch Max: <input type="text" name="ham" value="1"><br>
-Melting Temperature: <input type="text" name="tm" value="60"><br>
-Allow 3' G/T Mismatches: <input type="text" name="allowMM" value="no"><br>
-<input type="submit" value="Submit">
+Mismatch Max: <input type="text" name="ham" value="2"><br>
+<input type="submit" value="Submit"><br>
+<a href="#" class="show">Advanced Options</a>
+<div class="expandedText" style="display:none">
+<a href="#" class="hide">Close</a><br>
+Melting Temperature (C): <input type="text" name="tm" value="60"><br>
+Allow 3' G/T Mismatches: <input type="checkbox" name="allowMM" value="yes"><br>
+Sodium Concentration (microMolar): <input type="text" name="sodiumConc" value="0.05"><br>
+Primer Concentration (milliMolar): <input type="text" name="primerConc" value="50"><br>
+</div>
 </form>
+
 </div>
 <br>
-<br>
+
+<p>A tool for generating primers suitable for CAPS or dCAPS analyses of sites with insertions or deletions as well as SNPs.</p>
+
+<p>For this tool, currently you need to supply two sequences. Please supply 25-30 bases on each side of the indel or SNP location (not including the size of the inserted sequence). The sequence on both sides of the indel location should be exactly identical in both sequences.</p>
+
+<p>"Mismatch Max" defines the maximum number of mismatches allowed to modify a site. Right now, this is only partially functional. The mismatch max is used to determine whether a single site can be modified to match a restriction site, but it is not yet compared to the total number of mismatches in the primer. That feature is planned, however.</p>
+
+
+
+
 <div>
 Identification of CAPS or dCAPS primers for screening purposes (non-functional, placeholder form).
-<form role="form" method="POST" action="{{url_for('screening') }}">
+<form role="form" class="elegant-aero" method="POST" action="{{url_for('screening') }}">
 WT sequence: <input type="text" name="seq"><br>
+CRISPR target sequence: <input type="text" name="target"><br>
 Mismatch Max: <input type="text" name="ham" value="1"><br>
 Organism: <input type="text" name="org" value="generic"><br>
 Cutoff percent: <input type="text" name="cutoffPercent" value="0.1"><br>
+<input type="submit" value="Submit"><br>
+<a href="#" class="show">Advanced Options</a>
+<div class="expandedText" style="display:none">
+<a href="#" class="hide">Close</a><br>
 Melting Temperature: <input type="text" name="tm" value="60"><br>
-<input type="submit" value="Submit">
+Allow 3' G/T Mismatches: <input type="text" name="allowMM" value="no"><br>
+Sodium Concentration: <input type="text" name="sodiumConc" value="0.05"><br>
+Primer Concentration: <input type="text" name="primerConc" value="50"><br>
+</div>
 </form>
 </div>
 <br>
