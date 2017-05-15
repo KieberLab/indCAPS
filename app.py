@@ -9,6 +9,14 @@ from indCAPS import generatePrimer, crisprEdit
 from enzymeList import enzymes
 from helperFuncs import checkBases, removeWhitespace, evaluateInput, nonBasePresent
 import bleach
+import os
+
+if 'OPENSHIFT_APP_NAME' in os.environ:
+	ip = os.environ['OPENSHIFT_PYTHON_IP']
+	port = int(os.environ['OPENSHIFT_PYTHON_PORT'])
+else:
+	ip = '0.0.0.'
+	port = 8051
 
 # Set up Flask stuff
 application = Flask(__name__)
@@ -93,3 +101,7 @@ def screening():
 
 if __name__ == '__main__':
 	application.run()
+	from wsgiref.simple_server import make_server
+	httpd = make_server(ip, port, application)
+	httpd.serve_forever()
+	
