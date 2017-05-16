@@ -33,15 +33,20 @@ def results():
 			hamDist = int(bleach.clean(request.form['ham']))
 			TM = int(bleach.clean(request.form['tm']))
 			allowMisMatch = bleach.clean(request.form['allowMM']) # This is now a checkbox, it will exist if it was checked and not exist if not
+			sodiumConc = float(bleach.clean(request.form['sodiumConc']))
+			primerConc = float(bleach.clean(request.form['allowMM']))
+			ampliconLength = int(bleach.clean(request.form['ampliconLength']))
+			primerType = bleach.clean(request.form['primerType'])
+			primerLength = int(bleach.clean(request.form['primerLength']))
 		except:
 			errors.append("No sequences provided or Mismatch Match missing.")
 			return(render_template('results.html',allResults=[],notes=errors))
-		if seq1 and seq2 and hamDist:
+		if seq1 and seq2:
 			if helperFuncs.nonBasePresent(seq1) or helperFuncs.nonBasePresent(seq2):
 				return(render_template('results.html',allResults=[],notes=["Non-bases included in input."]))
 			
 			# Define the settings object
-			Settings = indCAPS.SettingsObject(TM=60,ampliconLength=100,primerType='tm',primerLength=30,allowMismatch=allowMisMatch,hammingThreshold=3,organism=None,sodiumConc=0.05,primerConc=50*10**(-9))
+			Settings = indCAPS.SettingsObject(TM=TM,ampliconLength=ampliconLength,primerType=primerType,primerLength=primerLength,allowMismatch=allowMisMatch,hammingThreshold=hamDist,organism=None,sodiumConc=sodiumConc,primerConc=primerConc*10**(-9))
 			
 			indCAPS.Settings = Settings
 			helperFuncs.Settings = Settings
@@ -73,6 +78,8 @@ def results():
 	
 @application.route('/screening', methods=['GET','POST'])
 def screening():
+	# TODO: populate Settings object
+	# TODO: send user to index if they try to go directly to the results page
 	errors = []
 	seq = ""
 	hamDist = 0
@@ -82,11 +89,15 @@ def screening():
 	if request.method == "POST":
 		# Get stuff the user entered
 		try:
-			seq = bleach.clean(request.form['seq'])
+			seq = bleach.clean(request.form['seq1'])
 			hamDist = int(bleach.clean(request.form['ham']))
-			cutoffPercent = int(bleach.clean(request.form['cutoffPercent']))
-			organism = int(bleach.clean(request.form['org']))
 			TM = int(bleach.clean(request.form['tm']))
+			allowMisMatch = bleach.clean(request.form['allowMM']) # This is now a checkbox, it will exist if it was checked and not exist if not
+			sodiumConc = float(bleach.clean(request.form['sodiumConc']))
+			primerConc = float(bleach.clean(request.form['allowMM']))
+			ampliconLength = int(bleach.clean(request.form['ampliconLength']))
+			primerType = bleach.clean(request.form['primerType'])
+			primerLength = int(bleach.clean(request.form['primerLength']))
 		except:
 			errors.append("No sequences provided or Mismatch Match missing.")
 			return(render_template('results.html',allResults=[],notes=errors))
