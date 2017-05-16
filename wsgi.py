@@ -90,6 +90,7 @@ def screening():
 		# Get stuff the user entered
 		try:
 			seq = bleach.clean(request.form['seq1'])
+			targetSeq = bleach.clean(request.form['targetSeq'])
 			hamDist = int(bleach.clean(request.form['ham']))
 			TM = int(bleach.clean(request.form['tm']))
 			allowMisMatch = bleach.clean(request.form['allowMM']) # This is now a checkbox, it will exist if it was checked and not exist if not
@@ -98,13 +99,30 @@ def screening():
 			ampliconLength = int(bleach.clean(request.form['ampliconLength']))
 			primerType = bleach.clean(request.form['primerType'])
 			primerLength = int(bleach.clean(request.form['primerLength']))
+			organism = bleach.clean(request.form['organism'])
 		except:
 			errors.append("No sequences provided or Mismatch Match missing.")
 			return(render_template('results.html',allResults=[],notes=errors))
 		if seq and hamDist and TM:
-			mutationResults = None#indCAPS.evaluateMutations(seq,altSeqs,seqThreshold,enzymeDict,hammingThreshold,enzymeName,TM)
-			return(render_template('results.html',allResults=mutationResults))
-	return(render_template('index.html',allResults=[]))
+			# Make settings object
+			Settings = SettingsObject(TM=TM,ampliconLength=ampliconLength,primerType=primerType,primerLength=primerLength,allowMismatch=allowMisMatch,hammingThreshold=hamDist,organism=organism,sodiumConc=sodiumConc,primerConc=primerConc*10**(-9))
+			
+			# Populate modules with settings object
+			indcaps.Settings = Settings
+			helperFuncs.Settings = Settings
+		
+			# Call function to evaluate enzymes
+			for eachEnzyme in enzymes:
+				enzymeName = eachEnzyme
+				enzymeValue = enzymes[eachEnzyme]
+				mutationResults = indCAPS.evaluateMutations(seq,targetSeq,enzymeDict,enzymeName)
+				if mutationResults is not None:
+					allResults.append(enzymeResults)
+			
+			if allResults == [] or allResults == None:
+				notes.append('No primer candidates. Please consider increasing the mismatch tolerance or altering your desired amplicon length.')
+			return(render_template('screening.html',allResults=allResults,notes=notes))
+	return(render_template('index.html')) # if you tried to go to the results page on your own rather than being sent by the index, redirect to the index page
 
 if __name__ == '__main__':
 	application.run()

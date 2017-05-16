@@ -2,9 +2,9 @@
 <html>
 <head>
 <title>indCAPS</title>
-<link rel="stylesheet" href="../static/custom.css" type="text/css" />
-<script src="jquery-3.2.1.js"></script>
-<script src="index.js"></script>
+<link rel="stylesheet" href="/static/custom.css" type="text/css" />
+<script type="text/javascript" src="{{ url_for('static', filename='jquery-3.2.1.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='index.js') }}"></script>
 </head>
 <body>
 <center><big><p>indCAPS (indy-caps)</p></big></center>
@@ -49,7 +49,7 @@ Primer Concentration (milliMolar): <input type="text" name="primerConc" value="5
 Identification of CAPS or dCAPS primers for screening purposes (non-functional, placeholder form).
 <form role="form" class="elegant-aero" method="POST" action="{{url_for('screening') }}">
 WT sequence: <input type="text" name="seq"><br>
-CRISPR target sequence: <input type="text" name="target"><br>
+CRISPR target sequence: <input type="text" name="targetSeq"><br>
 Mismatch Max: <input type="text" name="ham" value="1"><br>
 Organism: <input type="text" name="org" value="generic"><br>
 Cutoff percent: <input type="text" name="cutoffPercent" value="0.1"><br>

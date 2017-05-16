@@ -698,7 +698,7 @@ def scanSingle(seq,cutSite,currentMotif,direction):
 	else:
 		return([untenablePositions,suitablePositions])
 
-def evaluateMutations(seq,cutPosition,seqThreshold,enzymeDict,enzymeName):
+def evaluateMutations(seq,targetSeq,enzymeDict,enzymeName):
 	"""
 	Top-level function that searches a sequence to be 
 	edited with CRISPR/Cas9 methods for sites likely to be 
@@ -708,16 +708,14 @@ def evaluateMutations(seq,cutPosition,seqThreshold,enzymeDict,enzymeName):
 
 	# TODO: are they the same last shared base from each side?
 	# TODO: finish this
-	# takes a sequence and alternate sequences and evaluates whether an enzyme can distinguish the two more than a threshold
-	# top level function for predicting primers for screening for crispr edits
+
+	# Scan targetSeq across seq to find matching position
 	
-	# get altSeqs first rather than doing it in the loop
+	# Identify cut site (17/18 site)
+	
+	# Make putative edits
 	altSeqs = crisprEdit(seq,cutPosition,organism)
 	seqNum = len(altSeqs)
-	
-	# TODO: Do this
-	# Check that the settings object exists
-	#for eachObject in:
 	
 	for eachEnzyme in enzymeDict:
 		enzymeInfo = enzymeDict[eachEnzyme]
