@@ -128,11 +128,25 @@ def hamming(seq1,seq2,allResults=False,allComparisons=True):
 	Returns a list of integers.
 	
 	Warning: Be careful how you set up sequences with N's and call this.
-	Ex: hamming('gggnnn','grcnnn',allResults=True) returns [4,0,0].
+	Ex: hamming('gggnnn','grcnnn',allResults=True,allComparisons=True) 
+		returns [4,0,0].
+	
 	seq1 = string
 	seq2 = string
 	allResults = True or False
 	allComparisons = True or False
+	
+	If allComparisons is False, only the first output result (sequences
+	compared as provided) is returned.
+	If allComparisons is True, all of the output results are returned.
+	If allResults is False, only the minimum hamming distance is returned.
+	If allResults is True, all three hamming distances are returned.
+	
+	Ex: [4,0,4]
+	allComparisons = True, allResults = True returns [4,0,4]
+	allComparisons = False, allResults = True returns [4]
+	allComparisons = True, allResults = False returns [0]
+	allComparisons = False, allResults = False returns [4]
 	"""
 	seq1 = seq1.lower()
 	seq2 = seq2.lower()
@@ -535,7 +549,7 @@ def scanSequence(seq1,seq2,currentMotif,direction):
 		currentRegion1 = seq1[eachPosition : motifLen + eachPosition]
 		currentRegion2 = seq2[eachPosition : motifLen + eachPosition]
 		
-		region1Ham = hamming(currentRegion1,currentMotif)
+		region1Ham = hamming(currentRegion1,currentMotif) # FIXME: Check this!!! Make sure i'm actually being returned an int and not a list
 		region2Ham = hamming(currentRegion2,currentMotif)
 		
 		if region1Ham == 0 and region2Ham == 0:
@@ -706,17 +720,25 @@ def evaluateMutations(seq,targetSeq,enzymeDict,enzymeName):
 	"""
 	# ALGO: check enzyme for case where it cuts in WT. if it doesn't, skip it. if it does, check the cut position. if the cut position is flanked by Ns, skip checking. if the cut position isn't, make probable edits.
 
-	# TODO: are they the same last shared base from each side?
-	# TODO: finish this
-
 	# Scan targetSeq across seq to find matching position
+	for eachPosition in range(0,len(seq)-(len(target)-1)):
+		currentSubset = seq[eachPosition:(eachPosition+len(target))]
+		comparisons = hamming(currentSubset,target,True,True)
+		if 0 in comparisons: # I assume there is only one cut site because a check should have performed for multiple match sites before it ever got this far. Also assuming there is exactly one because of same pre-checks.
+			break
 	
-	# Identify cut site (17/18 site)
+	# Identify cut site
+	# Hard assumption that the cut site is at the -3 position from the 3' end of the provided 5'->3' target sequence
+	if comparisons[0] == 0:
+		cutPosition = eachPosition + len(target) - 3
+	elif comparisons[1] == 0 or comparisons[2] == 0:
+		cutPosition = eachPosition + 3
 	
 	# Make putative edits
 	altSeqs = crisprEdit(seq,cutPosition,organism)
 	seqNum = len(altSeqs)
 	
+	# Check each enzyme for cutting
 	for eachEnzyme in enzymeDict:
 		enzymeInfo = enzymeDict[eachEnzyme]
 		enzymeName = eachEnzyme
@@ -736,7 +758,7 @@ def evaluateMutations(seq,targetSeq,enzymeDict,enzymeName):
 		# see if it cuts on the right side
 		if sitesRight[1] != []:
 			x=1
-			# see if it cuts inside the putative primer length
+			# see if it cuts inside the putative primer length # wait i tihnk i dont need to? because scanSingle() only looks around the cut site within the window of the motif length
 			# TODO: actually put something here
 	
 		# If it does, do the rest

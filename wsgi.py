@@ -110,7 +110,22 @@ def screening():
 			# Populate modules with settings object
 			indcaps.Settings = Settings
 			helperFuncs.Settings = Settings
-		
+			
+			# Evaluate the input
+			inputEvaluation = helperFuncs.evaluateInput(seq)
+			seq1 = inputEvaluation[0]
+			seq2 = inputEvaluation[1]
+			notes = inputEvaluation[2]
+			siteMatches = helperFuncs.checkSingleSite(seq,target)
+			if siteMatches == 0:
+				# No matches present
+				notes.append('Target does not match any region in the sequence. Please provide a new target.')
+				return(render_template('screening.html',allResults=None,notes=notes))
+			elif siteMatches > 1:
+				# Too many matches present
+				notes.append('Target matches multiple locations in provided sequence. Primers cannot be designed.')
+				return(render_template('screening.html',allResults=None,notes=notes))
+				
 			# Call function to evaluate enzymes
 			for eachEnzyme in enzymes:
 				enzymeName = eachEnzyme
