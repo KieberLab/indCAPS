@@ -720,11 +720,15 @@ def evaluateMutations(seq,targetSeq,enzymeDict,enzymeName):
 	"""
 	# ALGO: check enzyme for case where it cuts in WT. if it doesn't, skip it. if it does, check the cut position. if the cut position is flanked by Ns, skip checking. if the cut position isn't, make probable edits.
 
+	# This calls scanSequence(), which returns a two-element list of form:
+	# [untenable positions, suitable positions]
+	
 	# Scan targetSeq across seq to find matching position
+	# I assume there is only one cut site because a check should have performed for multiple match sites before it ever got this far. Also assuming there is exactly one because of same pre-checks.
 	for eachPosition in range(0,len(seq)-(len(target)-1)):
 		currentSubset = seq[eachPosition:(eachPosition+len(target))]
 		comparisons = hamming(currentSubset,target,True,True)
-		if 0 in comparisons: # I assume there is only one cut site because a check should have performed for multiple match sites before it ever got this far. Also assuming there is exactly one because of same pre-checks.
+		if 0 in comparisons:
 			break
 	
 	# Identify cut site
@@ -734,9 +738,6 @@ def evaluateMutations(seq,targetSeq,enzymeDict,enzymeName):
 	elif comparisons[1] == 0 or comparisons[2] == 0:
 		cutPosition = eachPosition + 3
 	
-	# Make putative edits
-	altSeqs = crisprEdit(seq,cutPosition,organism)
-	seqNum = len(altSeqs)
 	
 	# Check each enzyme for cutting
 	for eachEnzyme in enzymeDict:
@@ -747,35 +748,44 @@ def evaluateMutations(seq,targetSeq,enzymeDict,enzymeName):
 		leftSeqNum = 0
 		rightSeqs = []
 		leftSeqs = []
+		canCutLeft = False
+		canCutRight = False
 		
 		# Check if this enzyme cuts in the WT
 		sitesLeft = scanSingle(seq,cutPosition,currentMotif,'left')
 		sitesRight = scanSingle(seq,cutPosition,currentMotif,'right')
-		# see if it cuts on the left side
+		
+		# See if a cut site was found
 		if sitesLeft[1] != []:
-			# it cuts, count it
-			leftSeqNum += 1
+			canCutLeft = True
 		# see if it cuts on the right side
 		if sitesRight[1] != []:
-			x=1
-			# see if it cuts inside the putative primer length # wait i tihnk i dont need to? because scanSingle() only looks around the cut site within the window of the motif length
-			# TODO: actually put something here
-	
-		# If it does, do the rest
-		for eachSequence in altSeqs:
-			if sitesLeft[1] != []:
-				leftSeqNum += 1
-				leftSeqs.append(sitesLeft)
-			if sitesRight[1] != []:
-				rightSeqNum += 1
-				rightSeqs.append(sitesRight)
-		# TODO: need to do some kind of counting of 'eachEnzyme in sitesLeft|sitesRight'
-		if (rightSeqNum/seqNum) >= seqThreshold:
-			x=1
-			# print output
-		if (leftSeqNum/seqNum) >= seqThreshold:
-			x=1
-			# print output
+			canCutRight = True
+		
+		# If either can cut, work with this system
+		if canCutLeft or CanCutRight:
+			alteredSeq = 
+			# Take the sequence that can be cut (extant or modified) and mutate it
+			altSeqs = crisprEdit(alteredSeq,cutPosition,organism)
+			seqNum = len(altSeqs)
+			for eachSequence in altSeqs:
+				sitesLeft = scanSequence(alteredSeq,eachSequence,currentMotif,'left')
+				sitesRight = scanSequence(alteredSeq,eachSequence,currentMotif,'right')
+				# each is form of [[untenable positions],[possible positions]]
+				
+				if sitesLeft[1] != []:
+					leftSeqNum += 1
+					leftSeqs.append(sitesLeft)
+				if sitesRight[1] != []:
+					rightSeqNum += 1
+					rightSeqs.append(sitesRight)
+			# TODO: need to do some kind of counting of 'eachEnzyme in sitesLeft|sitesRight'
+			if (rightSeqNum/seqNum) >= seqThreshold:
+				x=1
+				# return output
+			if (leftSeqNum/seqNum) >= seqThreshold:
+				x=1
+				# return output
 	return(None)
 
 def evaluateSites(seq1,seq2,enzymeInfo,enzymeName):
