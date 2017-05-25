@@ -712,6 +712,13 @@ def scanSingle(seq,cutSite,currentMotif,direction):
 	else:
 		return([untenablePositions,suitablePositions])
 
+		
+def editSeq(seq,untenablePositions,desiredSuitable,lastShared,currentMotif):
+	"""
+	Variant of generatePrimer() that makes edits to a sequence
+	"""
+		
+		
 def evaluateMutations(seq,targetSeq,enzymeDict,enzymeName):
 	"""
 	Top-level function that searches a sequence to be 
@@ -725,6 +732,9 @@ def evaluateMutations(seq,targetSeq,enzymeDict,enzymeName):
 	
 	# Scan targetSeq across seq to find matching position
 	# I assume there is only one cut site because a check should have performed for multiple match sites before it ever got this far. Also assuming there is exactly one because of same pre-checks.
+	
+	directions = ["left","right"]
+	
 	for eachPosition in range(0,len(seq)-(len(target)-1)):
 		currentSubset = seq[eachPosition:(eachPosition+len(target))]
 		comparisons = hamming(currentSubset,target,True,True)
@@ -738,16 +748,13 @@ def evaluateMutations(seq,targetSeq,enzymeDict,enzymeName):
 	elif comparisons[1] == 0 or comparisons[2] == 0:
 		cutPosition = eachPosition + 3
 	
-	
 	# Check each enzyme for cutting
 	for eachEnzyme in enzymeDict:
 		enzymeInfo = enzymeDict[eachEnzyme]
 		enzymeName = eachEnzyme
 		currentMotif = enzymeInfo[0]
-		rightSeqNum = 0
-		leftSeqNum = 0
-		rightSeqs = []
-		leftSeqs = []
+		siteSeqs = []
+		siteSeqNum = 0
 		canCutLeft = False
 		canCutRight = False
 		
@@ -755,30 +762,44 @@ def evaluateMutations(seq,targetSeq,enzymeDict,enzymeName):
 		sitesLeft = scanSingle(seq,cutPosition,currentMotif,'left')
 		sitesRight = scanSingle(seq,cutPosition,currentMotif,'right')
 		
-		# See if a cut site was found
+		# See if a workable cut site was found
+		# left side
 		if sitesLeft[1] != []:
 			canCutLeft = True
-		# see if it cuts on the right side
+		# right side
 		if sitesRight[1] != []:
 			canCutRight = True
 		
-		# If either can cut, work with this system
-		if canCutLeft or CanCutRight:
+		canCut = [canCutLeft, canCutRight]
+		
+		# If either can't cut, skip this enzyme
+		if not any(canCut):
+			continue
+		
+		# At least one can cut, so move forward
+		for each in [0,1]:
+			# Skip this loop if it can't cut anyway
+			if canCut[each] == False:
+				continue
+			
+			currentDirection = directions[each]
+
+			# Alter the sequence so that it can be used
 			alteredSeq = 
+			
 			# Take the sequence that can be cut (extant or modified) and mutate it
 			altSeqs = crisprEdit(alteredSeq,cutPosition,organism)
 			seqNum = len(altSeqs)
+			# FIXME: NO THIS IS DUMB I DONT NEED TO PRE-EDIT THE SEQUENCE
+			
+			# Check altSeqs
 			for eachSequence in altSeqs:
-				sitesLeft = scanSequence(alteredSeq,eachSequence,currentMotif,'left')
-				sitesRight = scanSequence(alteredSeq,eachSequence,currentMotif,'right')
+				sites = scanSequence(alteredSeq,eachSequence,currentMotif,currentDirection)
 				# each is form of [[untenable positions],[possible positions]]
 				
-				if sitesLeft[1] != []:
-					leftSeqNum += 1
-					leftSeqs.append(sitesLeft)
-				if sitesRight[1] != []:
-					rightSeqNum += 1
-					rightSeqs.append(sitesRight)
+				if sites[1] != []:
+					siteSeqNum += 1
+					siteSeqs.append(sitesLeft)
 			# TODO: need to do some kind of counting of 'eachEnzyme in sitesLeft|sitesRight'
 			if (rightSeqNum/seqNum) >= seqThreshold:
 				x=1
