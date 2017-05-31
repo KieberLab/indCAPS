@@ -100,12 +100,13 @@ def screening():
 			primerType = bleach.clean(request.form['primerType'])
 			primerLength = int(bleach.clean(request.form['primerLength']))
 			organism = bleach.clean(request.form['organism'])
+			seqThreshold = float(bleach.clean(request.form['threshold']))
 		except:
 			errors.append("No sequences provided or Mismatch Match missing.")
 			return(render_template('results.html',allResults=[],notes=errors))
 		if seq and hamDist and TM:
 			# Make settings object
-			Settings = SettingsObject(TM=TM,ampliconLength=ampliconLength,primerType=primerType,primerLength=primerLength,allowMismatch=allowMisMatch,hammingThreshold=hamDist,organism=organism,sodiumConc=sodiumConc,primerConc=primerConc*10**(-9))
+			Settings = SettingsObject(TM=TM,ampliconLength=ampliconLength,primerType=primerType,primerLength=primerLength,allowMismatch=allowMisMatch,hammingThreshold=hamDist,organism=organism,sodiumConc=sodiumConc,primerConc=primerConc*10**(-9),seqThreshold=seqThreshold)
 			
 			# Populate modules with settings object
 			indcaps.Settings = Settings

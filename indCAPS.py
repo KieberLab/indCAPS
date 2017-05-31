@@ -35,7 +35,7 @@ class SettingsObject:
 	organism = string, species name
 	organismEditProfile = unknown format, for specifying probable crispr edits
 	"""
-	def __init__(self,TM=55,ampliconLength=70,primerType='tm',primerLength=25,allowMismatch=False,hammingThreshold=1,organism=None,sodiumConc=0.05,primerConc=50*10**(-9)):
+	def __init__(self,TM=55,ampliconLength=70,primerType='tm',primerLength=25,allowMismatch=False,hammingThreshold=1,organism=None,sodiumConc=0.05,primerConc=50*10**(-9),seqThreshold=0):
 		self.TM = TM
 		self.ampliconLength = ampliconLength
 		self.primerType = primerType
@@ -50,6 +50,7 @@ class SettingsObject:
 		self.organism = organism
 		self.sodiumConc = sodiumConc
 		self.primerConc = primerConc
+		self.seqThreshold = seqThreshold
 		
 		commonEdits =  {"Athaliana":[],
 					"Osativa":[],
@@ -614,7 +615,7 @@ def scanSequence(seq1,seq2,currentMotif,direction):
 	else:
 		return([untenablePositions,suitablePositions])
 
-def scanSingle(seq,cutSite,currentMotif,direction):
+def scanSingle(seq,cutSite,currentMotif,direction,exact=False):
 	"""
 	Modified version of scanSequence() that examines only one sequence.
 	
@@ -667,7 +668,7 @@ def scanSingle(seq,cutSite,currentMotif,direction):
 		if regionHam == 0:
 			untenablePositions.append(eachPosition)
 		
-		if (regionHam <= hammingThreshold):
+		if (regionHam <= Settings.hammingThreshold and exactMatch == False):
 			suitablePositions.append(eachPosition)
 		
 	# ===============================
@@ -713,17 +714,22 @@ def scanSingle(seq,cutSite,currentMotif,direction):
 		return([untenablePositions,suitablePositions])
 
 		
-def editSeq(seq,untenablePositions,desiredSuitable,lastShared,currentMotif):
+def editSeq(seq,desiredSuitable,lastShared,currentMotif):
 	"""
-	Variant of generatePrimer() that makes edits to a sequence
+	Variant of generatePrimer() that makes edits to a sequence.
+	
+	Returns a string.
 	"""
+	
+	return(seq)
 		
-		
-def evaluateMutations(seq,targetSeq,enzymeDict,enzymeName):
+def evaluateMutations(seq,targetSeq,enzymeInfo,enzymeName):
 	"""
 	Top-level function that searches a sequence to be 
 	edited with CRISPR/Cas9 methods for sites likely to be 
 	usable as screening sites.
+	
+	Returns list of strings of output to return to html.
 	"""
 	# ALGO: check enzyme for case where it cuts in WT. if it doesn't, skip it. if it does, check the cut position. if the cut position is flanked by Ns, skip checking. if the cut position isn't, make probable edits.
 
@@ -734,7 +740,10 @@ def evaluateMutations(seq,targetSeq,enzymeDict,enzymeName):
 	# I assume there is only one cut site because a check should have performed for multiple match sites before it ever got this far. Also assuming there is exactly one because of same pre-checks.
 	
 	directions = ["left","right"]
+	currentOutput = []
+	output = []
 	
+	# Check to see where the cut site is in the given sequence
 	for eachPosition in range(0,len(seq)-(len(target)-1)):
 		currentSubset = seq[eachPosition:(eachPosition+len(target))]
 		comparisons = hamming(currentSubset,target,True,True)
@@ -748,66 +757,110 @@ def evaluateMutations(seq,targetSeq,enzymeDict,enzymeName):
 	elif comparisons[1] == 0 or comparisons[2] == 0:
 		cutPosition = eachPosition + 3
 	
-	# Check each enzyme for cutting
-	for eachEnzyme in enzymeDict:
-		enzymeInfo = enzymeDict[eachEnzyme]
-		enzymeName = eachEnzyme
-		currentMotif = enzymeInfo[0]
-		siteSeqs = []
-		siteSeqNum = 0
-		canCutLeft = False
-		canCutRight = False
+	currentMotif = enzymeInfo[0]
+	siteSeqs = []
+	siteSeqNum = 0
+	canCutLeft = False
+	canCutRight = False
+	
+	# Check if this enzyme cuts in the WT
+	sitesLeft = scanSingle(seq,cutPosition,currentMotif,'left',exactMatch=False)
+	sitesRight = scanSingle(seq,cutPosition,currentMotif,'right',exactMatch=False)
+	
+	leftSeqNum = 0
+	rightSeqNum = 0
+	
+	rejectedPrimers = 0
+	
+	for eachNum in [0,1]:
+		eachSet = [sitesLeft,sitesRight][eachNum]
+		currentDirection = ['left','right'][eachNum]
+		currentSet = [[],[]]
+		currentRejects = 0
 		
-		# Check if this enzyme cuts in the WT
-		sitesLeft = scanSingle(seq,cutPosition,currentMotif,'left')
-		sitesRight = scanSingle(seq,cutPosition,currentMotif,'right')
-		
-		# See if a workable cut site was found
-		# left side
-		if sitesLeft[1] != []:
-			canCutLeft = True
-		# right side
-		if sitesRight[1] != []:
-			canCutRight = True
-		
-		canCut = [canCutLeft, canCutRight]
-		
-		# If either can't cut, skip this enzyme
-		if not any(canCut):
+		if eachSet == [[0],[0]] or eachSet == [[],[]]: # FIXME: I hate this, fix scanSingle() and scanSequence() so it can only be one of these
 			continue
-		
-		# At least one can cut, so move forward
-		for each in [0,1]:
-			# Skip this loop if it can't cut anyway
-			if canCut[each] == False:
-				continue
+		elif eachSet[1] != []:
+			currentOut = []
+			currentOut.append("===============================")
 			
-			currentDirection = directions[each]
-
-			# Alter the sequence so that it can be used
-			alteredSeq = 
+			if any([value < 0 for value in eachSet[1]]):
+				# "1234"[-1] gives "4", while "4321"[1] gives "3"
+				currentSet[1] = [abs(x) for x in eachSet[1]]
+				currentSet[0] = [abs(x) for x in eachSet[0]]
+				currentSeq = revComp(seq)
+				currentTarget = revComp(target)
+				currentMotif = currentMotif
+				currentOut.append("Sequences are reversed.")
+			else:
+				currentSet[0] = eachSet[0]
+				currentSet[1] = eachSet[1]
+				currentSeq = seq
+				currentTarget = target
+			currentOut.append("Enzyme: " + enzymeName)
+			outputstring1 = "Possible cut site found at position " + str(currentSet[1]) + "."
+			outputstring2 = "Problem cut site found at position " + str(currentSet[0]) + "."
+			currentOut.append(outputstring1)
+			currentOut.append(outputstring2)
 			
-			# Take the sequence that can be cut (extant or modified) and mutate it
-			altSeqs = crisprEdit(alteredSeq,cutPosition,organism)
-			seqNum = len(altSeqs)
-			# FIXME: NO THIS IS DUMB I DONT NEED TO PRE-EDIT THE SEQUENCE
 			
-			# Check altSeqs
+			# Get proper enzyme direction and typeset the enzyme
+			# This accounts for cases of non-palindromic enzymes
+			for eachIndex in currentSet[1]:
+				motifDiff = hamming(currentMotif,currentSeq[eachIndex:(eachIndex+motifLen)],allResults=True)
+				if motifDiff[0] > min(motifDiff[1:2]):
+					currentMotif = revComp(currentMotif)
+				currentOut.append(" "*(12+eachIndex) + currentMotif)
+			for eachIndex in currentSet[0]:
+				currentOut.append(" "*12+eachIndex) + "."*len(currentMotif)
+			
+			# Get the sites we want to make primers for
+			desiredSuitable = [sitesLeft,sitesRight][each][1]
+			
+			# Multiple putative sites may exist, so check at each one
+			for eachSite in desiredSuitable:
+				alteredSeq = editSeq(seq,desiredSuitable,lastShared,currentMotif)
+				altSeqs = crisprEdit(alteredSeq,cutPosition,organism)
+				seqNum = len(altSeqs)
+			
 			for eachSequence in altSeqs:
-				sites = scanSequence(alteredSeq,eachSequence,currentMotif,currentDirection)
-				# each is form of [[untenable positions],[possible positions]]
+				# Check to see if there's an exact cut site in each edited sequence
+				# Each variable has form of [[untenable positions],[possible positions]]
+				sites = scanSingle(alteredSeq,eachSequence,currentMotif,currentDirection,exactMatch=True)
 				
+				# If there was a cut site to use, add it to the list
 				if sites[1] != []:
 					siteSeqNum += 1
-					siteSeqs.append(sitesLeft)
-			# TODO: need to do some kind of counting of 'eachEnzyme in sitesLeft|sitesRight'
-			if (rightSeqNum/seqNum) >= seqThreshold:
-				x=1
-				# return output
-			if (leftSeqNum/seqNum) >= seqThreshold:
-				x=1
-				# return output
-	return(None)
+					siteSeqs.append(sites)
+			
+			# Examine whether the proportion of viable cuts is above the threshold
+			# TODO: is seqThreshold part of Settings?
+			if ([leftSeqNum,rightSeqNum][eachNum]/siteSeqNum) >= seqThreshold:
+				# This primer might work for screening
+				if currentDirection == "right":
+					outputSeq = revComp(seq)
+				else:
+					outputSeq = seq
+
+				for eachIndex in sites[1]:
+					# Generate primer
+					newPrimer = generatePrimer(seq1,sites[0],eachIndex,lastShared,currentMotif)
+					if newPrimer is not None:
+						currentOut.append("Possible screening primer found.")
+						currentOut.append(outputSeq)
+						currentOut.append(" "*12+currentLastShared-len(newPrimer[0]))+newPrimer[0])
+						continue
+					else:
+						currentRejects += 1
+						continue
+				if currentRejects == len(currentSet[1]):
+					continue
+				output.append(currentOut)
+				rejectedPrimers += currentRejects
+	# If it gets to this point it's failed
+	if rejectedPrimers == len(sitesLeft[1])+len(sitesRight[1]):
+		return(None)
+	return(output)
 
 def evaluateSites(seq1,seq2,enzymeInfo,enzymeName):
 	"""
@@ -848,7 +901,10 @@ def evaluateSites(seq1,seq2,enzymeInfo,enzymeName):
 	
 	output = []
 	motifLen = len(currentMotif)
+	rejectedPrimers = 0
+	
 	for eachSet in [sitesLeft,sitesRight]:
+		currentRejects = 0
 		currentSet=[[],[]]
 		if eachSet == [[0],[0]] or eachSet == [[],[]]:
 			return(None)
@@ -897,7 +953,6 @@ def evaluateSites(seq1,seq2,enzymeInfo,enzymeName):
 				currentOut.append("CAPS primer possible")
 			
 			currentLastShared = lastSharedBase(currentSeq1,currentSeq2,'left')
-			rejectedPrimers = 0
 			for eachIndex in currentSet[1]:
 				newPrimer = generatePrimer(currentSeq1,currentSet[0],eachIndex,currentLastShared,currentMotif)
 				# TODO: check hamdist? or does generatePrimer do that
@@ -907,12 +962,16 @@ def evaluateSites(seq1,seq2,enzymeInfo,enzymeName):
 					currentOut.append(" "*(12+currentLastShared-len(newPrimer[0]))+newPrimer[0])
 					currentOut.append(estimateTM(newPrimer[0]))
 				else:
-					rejectedPrimers += 1
+					currentRejects += 1
 					continue
+			
+			if currentRejects == len(currentSet[1]):
+				continue
 			output.append(currentOut)
-			if rejectedPrimers == len(currentSet[1]):
-				return(None)
-			return(output)
+			rejectedPrimers += currentRejects
+	if rejectedPrimers == len(sitesLeft[1]) + len(sitesRight[1]):
+		return(None)
+	return(output) 
 
 def putativePrimer(seq,lastShared):
 	"""
@@ -964,6 +1023,14 @@ def putativePrimer(seq,lastShared):
 		filterList = [abs(len(x) - Settings.minLength) for x in primerList]
 		bestPrimer = [primerList[x] for x in positionList if filterList[x] == min(filterList)]
 		return(bestPrimer)
+		
+def typesetOutput(seq1,seq2,currentMotif,mode="crispr"):
+	"""
+	At some point I intend to move the nearly identical 
+	typesetting code out of evaluateSites() and evaluateMutations()
+	and put it here in one place.
+	"""
+	return(None)
 
 def generatePrimer(seq,untenablePositions,desiredSuitable,lastShared,currentMotif):
 	"""
