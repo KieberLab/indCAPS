@@ -34,12 +34,13 @@ def results():
 			TM = int(bleach.clean(request.form['tm']))
 			allowMisMatch = bleach.clean(request.form['allowMM']) # This is now a checkbox, it will exist if it was checked and not exist if not
 			sodiumConc = float(bleach.clean(request.form['sodiumConc']))
-			primerConc = float(bleach.clean(request.form['allowMM']))
+			primerConc = float(bleach.clean(request.form['primerConc']))
 			ampliconLength = int(bleach.clean(request.form['ampliconLength']))
 			primerType = bleach.clean(request.form['primerType'])
 			primerLength = int(bleach.clean(request.form['primerLength']))
-		except:
+		except Exception as e:
 			errors.append("No sequences provided or Mismatch Match missing.")
+			errors.append(e)
 			return(render_template('results.html',allResults=[],notes=errors))
 		if seq1 and seq2:
 			if helperFuncs.nonBasePresent(seq1) or helperFuncs.nonBasePresent(seq2):
@@ -81,35 +82,33 @@ def screening():
 	# TODO: populate Settings object
 	# TODO: send user to index if they try to go directly to the results page
 	errors = []
-	seq = ""
-	hamDist = 0
-	TM = 58
-	cutoffPercent = 0
-	organism = "Athaliana"
+	allResults = []
+	notes = []
 	if request.method == "POST":
 		# Get stuff the user entered
 		try:
-			seq = bleach.clean(request.form['seq1'])
+			seq = bleach.clean(request.form['seq'])
 			targetSeq = bleach.clean(request.form['targetSeq'])
 			hamDist = int(bleach.clean(request.form['ham']))
 			TM = int(bleach.clean(request.form['tm']))
 			allowMisMatch = bleach.clean(request.form['allowMM']) # This is now a checkbox, it will exist if it was checked and not exist if not
 			sodiumConc = float(bleach.clean(request.form['sodiumConc']))
-			primerConc = float(bleach.clean(request.form['allowMM']))
+			primerConc = float(bleach.clean(request.form['primerConc']))
 			ampliconLength = int(bleach.clean(request.form['ampliconLength']))
 			primerType = bleach.clean(request.form['primerType'])
 			primerLength = int(bleach.clean(request.form['primerLength']))
 			organism = bleach.clean(request.form['organism'])
-			seqThreshold = float(bleach.clean(request.form['threshold']))
-		except:
-			errors.append("No sequences provided or Mismatch Match missing.")
+			seqThreshold = float(bleach.clean(request.form['cutoffPercent']))
+		except Exception as e:
+			errors.append("Error in input form.")
+			errors.append(e)
 			return(render_template('results.html',allResults=[],notes=errors))
 		if seq and hamDist and TM:
 			# Make settings object
-			Settings = SettingsObject(TM=TM,ampliconLength=ampliconLength,primerType=primerType,primerLength=primerLength,allowMismatch=allowMisMatch,hammingThreshold=hamDist,organism=organism,sodiumConc=sodiumConc,primerConc=primerConc*10**(-9),seqThreshold=seqThreshold)
+			Settings = indCAPS.SettingsObject(TM=TM,ampliconLength=ampliconLength,primerType=primerType,primerLength=primerLength,allowMismatch=allowMisMatch,hammingThreshold=hamDist,organism=organism,sodiumConc=sodiumConc,primerConc=primerConc*10**(-9),seqThreshold=seqThreshold)
 			
 			# Populate modules with settings object
-			indcaps.Settings = Settings
+			indCAPS.Settings = Settings
 			helperFuncs.Settings = Settings
 			
 			# Evaluate the input
@@ -117,7 +116,7 @@ def screening():
 			seq1 = inputEvaluation[0]
 			seq2 = inputEvaluation[1]
 			notes = inputEvaluation[2]
-			siteMatches = helperFuncs.checkSingleSite(seq,target)
+			siteMatches = helperFuncs.checkSingleSite(seq,targetSeq)
 			if siteMatches == 0:
 				# No matches present
 				notes.append('Target does not match any region in the sequence. Please provide a new target.')
@@ -131,9 +130,9 @@ def screening():
 			for eachEnzyme in enzymes:
 				enzymeName = eachEnzyme
 				enzymeValue = enzymes[eachEnzyme]
-				mutationResults = indCAPS.evaluateMutations(seq,targetSeq,enzymeDict,enzymeName)
+				mutationResults = indCAPS.evaluateMutations(seq,targetSeq,enzymeValue,enzymeName)
 				if mutationResults is not None:
-					allResults.append(enzymeResults)
+					allResults.append(mutationResults)
 			
 			if allResults == [] or allResults == None:
 				notes.append('No primer candidates. Please consider increasing the mismatch tolerance or altering your desired amplicon length.')

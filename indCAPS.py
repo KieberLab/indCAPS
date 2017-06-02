@@ -9,6 +9,7 @@ diagnostic PCR primers can be constructed to distinguish the strings.
 #currentMotif = 'gggccc'
 #hamNum = 4 #arguments[3]
 from math import log
+import itertools
 
 # Sample sequences from Leah
 seq1 = "TGTGTGTGCAGGGAGAAGCCAAATGTGGATTTTGACAGGGTGGACTCGTATGTGCATCAG"
@@ -59,7 +60,7 @@ class SettingsObject:
 		if self.organism in commonEdits:
 			self.organismEditProfile = commonEdits[organism]
 		else:
-			self.organismEditProfile = [1,-1,2,-2,3,-3]
+			self.organismEditProfile = [1,-1]
 
 
 ## Custom Functions
@@ -67,7 +68,7 @@ def hammingBool(seq1,seq2,allResults=False):
 	# Instead of returning a singular value, returns lists of bools indicating whether there's a match
 	return(False)
 	
-def proportionalDistance(mut,motif):
+def proportionalDistance(mutMotif,motif):
 	"""
 	very incomplete function
 	"""
@@ -154,29 +155,29 @@ def hamming(seq1,seq2,allResults=False,allComparisons=True):
 	
 	if len(seq1) != len(seq2):
 		warnings.warn("Comparing sequences of unequal length.")
-		print("Seq 1 is: ["+seq1+"]")
-		print("Seq 2 is: ["+seq2+"]")
+
 #	
 #	distance1 = len(seq1) - sum([x == y for (x,y) in zip(seq1,seq2)])
 #	# These next two are for cases of non-palindromic motifs
 #	distance2 = len(seq1) - sum([x == y for (x,y) in zip(seq1,revComp(seq2))])
 #	distance3 = len(seq1) - sum([x == y for (x,y) in zip(revComp(seq1),seq2)])
 #	return(min(distance1,distance2,distance3))
-	possibleMatches = {'a':['a','r','w','m','d','h','v','n'],
-				  'g':['g','r','s','k','b','d','v','n'],
-				  'c':['c','y','s','m','b','h','v','n'],
-				  't':['t','y','w','k','b','d','h','n'],
-				  'r':['a','g','n'],
-				  'y':['c','t','n'],
-				  's':['g','c','n'],
-				  'w':['a','t','n'],
-				  'k':['g','t','n'],
-				  'm':['a','c','n'],
-				  'b':['c','g','t','n'],
-				  'd':['a','g','t','n'],
-				  'h':['a','c','t','n'],
-				  'v':['a','c','g','n'],
-				  'n':['a','g','c','t','r','y','s','w','k','m','b','d','h','v','n']}
+	possibleMatches = {'a':['a','r','w','m','d','h','v','n','x'],
+				  'g':['g','r','s','k','b','d','v','n','x'],
+				  'c':['c','y','s','m','b','h','v','n','x'],
+				  't':['t','y','w','k','b','d','h','n','x'],
+				  'r':['a','g','n','x'],
+				  'y':['c','t','n','x'],
+				  's':['g','c','n','x'],
+				  'w':['a','t','n','x'],
+				  'k':['g','t','n','x'],
+				  'm':['a','c','n','x'],
+				  'b':['c','g','t','n','x'],
+				  'd':['a','g','t','n','x'],
+				  'h':['a','c','t','n','x'],
+				  'v':['a','c','g','n','x'],
+				  'n':['a','g','c','t','r','y','s','w','k','m','b','d','h','v','n','x'],
+				  'x':['a','g','c','t','r','y','s','w','k','m','b','d','h','v','n','x']}
 	# NOTE: degenerate bases should only occur in enzyme recognition motifs
 	# This should allow motifs with degenerate bases to match given bases in a genomic sequence
 	# However, if this were coded for general use, it would produce incorrect results
@@ -232,7 +233,8 @@ def revComp(seq1):
 			 'd':'h',
 			 'v':'b',
 			 'h':'d',
-			 'b':'v'}
+			 'b':'v',
+			 'x':'x'}
 	for each in seq1:
 		seqNew.append(baseDict[each])
 	seqNew.reverse()
@@ -372,7 +374,7 @@ def nearestNeighbor(seq):
 	# keep it above 8 bases
 	# From http://biotools.nubic.northwestern.edu/OligoCalc.html and cited sources
 	R = 1.9872036 # kcal / (mole*kelvin)
-	T = (1000*(-deltaH(seq))) / ((-deltaS(seq))+R*log(1/Settings.primerConc))-272.9+16.6*log(Settings.sodiumConc,10)
+	T = (1000*(-deltaH(seq))) / ((-deltaS(seq))+R*log(1/Settings.primerConc))-272.9+16.6*log(Settings.sodiumConc,10) # FIXME: i think this is messed up somewhere? dont i need a -3.4kcal/kmole? it's not drastically wrong i dont think, just slightly messed up. oh wait i think i'm fine, the 3.4 is included in the deltaH() function
 	return(T)
 
 
@@ -383,14 +385,14 @@ def estimateTM(seq,func='nearestNeighbor'):
 	
 	if func is 'nearestNeighbor':
 		return(nearestNeighbor(seq))
+	# If length between 8 and 40 bp:
+	# use nearest neighbor
 	
-	# primerConc is 50 nM, pH 7.0
+	# If length less than 8:
 	
-	# If less than 8 bases in oligo:
 	
-	# If 13 or fewer bases in oligo:
-	
-	# If 14 or more bases in oligo:
+	# If length greater than 40:
+	# use salt adjusted
 	return(None)
 
 
@@ -566,6 +568,7 @@ def scanSequence(seq1,seq2,currentMotif,direction):
 	rightSeq2 = revComp(seq1[lastSharedReverse:])
 	rightLastShared = abs(lastSharedReverse)
 	rightSharedMotif = False
+	# FIXME: if it's the right shared sequence then I don't need to subset twice at all!
 	
 	# Figure out limit of right side
 	# TODO: check to make sure this isn't fucked
@@ -578,6 +581,7 @@ def scanSequence(seq1,seq2,currentMotif,direction):
 	for eachPosition in range(rightSideCutoff,rightLastShared-motifLen):
 		currentRightRegion1 = rightSeq1[eachPosition : motifLen + eachPosition]
 		currentRightRegion2 = rightSeq2[eachPosition : motifLen + eachPosition]
+
 		
 		rightRegion1Ham = hamming(currentRightRegion1,currentMotif)
 		rightRegion2Ham = hamming(currentRightRegion2,currentMotif)
@@ -587,7 +591,7 @@ def scanSequence(seq1,seq2,currentMotif,direction):
 	
 	if rightSharedMotif == True:
 		# This motif is unsuable from this direction
-		return([[0],[0]])
+		return([[],[]])
 	
 	# ===============================
 	# Check to see if the motif is found in the unshared region
@@ -615,7 +619,7 @@ def scanSequence(seq1,seq2,currentMotif,direction):
 	else:
 		return([untenablePositions,suitablePositions])
 
-def scanSingle(seq,cutSite,currentMotif,direction,exact=False):
+def scanSingle(seq,cutSite,currentMotif,direction,lastShared,lastSharedReverse,exactMatch=False):
 	"""
 	Modified version of scanSequence() that examines only one sequence.
 	
@@ -626,24 +630,24 @@ def scanSingle(seq,cutSite,currentMotif,direction,exact=False):
 	hammingThreshold = integer, number of tolerable mismatches
 	ampliconLength = integer, desired length of dCAPS amplicon
 	TM = desired primer TM
-	primerType = string, choice of "" or ""
+	primerType = string, choice of "tm" or "length"
 	minLength = integer, length of primer
 	"""
 	# consider the sequence "abcdefghijklmnop" where a cut will occur between "f" and "g"
 	# the last shared base will then be "f", at index 5 (0-based)
 	# the reverse last shared base is "g", at index 9 (for reversed string) and index -10 (  0-(seqLen-lastShared)+1, for forward string)
+	
 	motifLen = len(currentMotif)
-	lastShared = cutSite 
-	lastSharedReverse = 0 - (len(seq) - cutSite) + 1
 	
 	possibleDirections = ["left","right"]
 	directionComparison = [x in direction for x in possibleDirections]
 	otherDirection = [d for d,s in zip(possibleDirections,directionComparison) if not s][0]
+		
 	
 	if direction is 'right':
 		seq = revComp(seq)
 		lastShared = 0 - lastShared
-		lastSharedReverse = 0 - lastSharedReverse - 1
+		lastSharedReverse = 0 - lastSharedReverse
 	
 	untenablePositions = []
 	suitablePositions = []
@@ -659,6 +663,9 @@ def scanSingle(seq,cutSite,currentMotif,direction,exact=False):
 	tempPrimer = putativePrimer(seq,lastShared)
 	primerCutoff = lastShared - len(tempPrimer[0])
 
+	# Taking care of an edge case
+	if primerCutoff < motifLen:
+		primerCutoff = 0
 	# TODO: Check all this, I've only done a first pass on this to remove seq1/seq2 refs
 	for eachPosition in range(primerCutoff,lastShared - motifLen):
 		currentRegion = seq[eachPosition : motifLen + eachPosition]
@@ -668,31 +675,30 @@ def scanSingle(seq,cutSite,currentMotif,direction,exact=False):
 		if regionHam == 0:
 			untenablePositions.append(eachPosition)
 		
-		if (regionHam <= Settings.hammingThreshold and exactMatch == False):
-			suitablePositions.append(eachPosition)
-		
 	# ===============================
 	# Check to see if the current motif is present on the right side of the sequence (defined to be downstream here)
-	rightSeq = revComp(seq[lastSharedReverse:])
-	rightLastShared = abs(lastSharedReverse)
+	rightSeq = revComp(seq[lastSharedReverse:]) 
+	rightLastShared = 0 - lastSharedReverse
 	rightSharedMotif = False
-	
 	# Figure out limit of right side
-	rightSideCutoff = max(0,rightLastShared - ampliconLength - len(tempPrimer[0]))	
+	ampliconEnd = lastShared + Settings.ampliconLength + motifLen
+	
+	if ampliconEnd > len(seq):
+		rightSideCutoff = 0
+	else: 
+		rightSideCutoff = len(seq) - ampliconEnd # TODO: make sure i dont have a fencepost error here
 	
 	for eachPosition in range(rightSideCutoff,rightLastShared-motifLen):
 		currentRightRegion = rightSeq[eachPosition : motifLen + eachPosition]
-		
 		rightRegionHam = hamming(currentRightRegion,currentMotif)
 		
 		if 0 in [rightRegionHam]:
 			rightSharedMotif = True
 	
-	# TODO: might be useful to have a way to 
 	if rightSharedMotif == True:
 		# This motif is unsuable from this direction
-		return([[0],[0]])
-	
+		return([[],[]])
+
 	# ===============================
 	# Check to see if the motif is found in the unshared region
 	# Seq1 unshared
@@ -712,16 +718,6 @@ def scanSingle(seq,cutSite,currentMotif,direction,exact=False):
 		return([newUntenable,newSuitable])
 	else:
 		return([untenablePositions,suitablePositions])
-
-		
-def editSeq(seq,desiredSuitable,lastShared,currentMotif):
-	"""
-	Variant of generatePrimer() that makes edits to a sequence.
-	
-	Returns a string.
-	"""
-	
-	return(seq)
 		
 def evaluateMutations(seq,targetSeq,enzymeInfo,enzymeName):
 	"""
@@ -738,71 +734,103 @@ def evaluateMutations(seq,targetSeq,enzymeInfo,enzymeName):
 	
 	# Scan targetSeq across seq to find matching position
 	# I assume there is only one cut site because a check should have performed for multiple match sites before it ever got this far. Also assuming there is exactly one because of same pre-checks.
-	
+	print("Checking enzyme "+str(enzymeName))
+	# Initializing variables
+	currentMotif = enzymeInfo[0]
+	canCutLeft = False
+	canCutRight = False
 	directions = ["left","right"]
 	currentOutput = []
 	output = []
+	motifLen = len(currentMotif)
 	
 	# Check to see where the cut site is in the given sequence
-	for eachPosition in range(0,len(seq)-(len(target)-1)):
-		currentSubset = seq[eachPosition:(eachPosition+len(target))]
-		comparisons = hamming(currentSubset,target,True,True)
+	for eachPosition in range(0,len(seq)-(len(targetSeq)-1)):
+		currentSubset = seq[eachPosition:(eachPosition+len(targetSeq))]
+		comparisons = hamming(currentSubset,targetSeq,True,True)
 		if 0 in comparisons:
+			targetStart = eachPosition
+			if comparisons[1] == 0 or comparisons[2] == 0:
+				targetSeq = revComp(targetSeq)
 			break
 	
 	# Identify cut site
 	# Hard assumption that the cut site is at the -3 position from the 3' end of the provided 5'->3' target sequence
 	if comparisons[0] == 0:
-		cutPosition = eachPosition + len(target) - 3
+		cutPosition = eachPosition + len(targetSeq) - 3
 	elif comparisons[1] == 0 or comparisons[2] == 0:
 		cutPosition = eachPosition + 3
 	
-	currentMotif = enzymeInfo[0]
-	siteSeqs = []
-	siteSeqNum = 0
-	canCutLeft = False
-	canCutRight = False
+	# Find last shared base on each side of putative editing
+	lastSharedLeft = len(seq)
+	lastSharedRight = lastSharedLeft
+	tempEditedSeqs = crisprEdit(seq,cutPosition)
+	if len(tempEditedSeqs) > 1:
+		for eachPair in itertools.permutations(tempEditedSeqs,2):
+			tempLastSharedLeft = lastSharedBase(eachPair[0],eachPair[1],'left')
+			tempLastSharedRight = lastSharedBase(eachPair[0],eachPair[1],'right')
+			if tempLastSharedLeft < lastSharedLeft:
+				lastSharedLeft = tempLastSharedLeft
+			if tempLastSharedRight < lastSharedRight:
+				lastSharedRight = tempLastSharedRight
+	else:
+		lastSharedLeft = lastSharedBase(tempEditedSeqs[0],seq,'left') # should be positive
+		lastSharedRight = lastSharedBase(tempEditedSeqs[0],seq,'right') # should be negative
+	
 	
 	# Check if this enzyme cuts in the WT
-	sitesLeft = scanSingle(seq,cutPosition,currentMotif,'left',exactMatch=False)
-	sitesRight = scanSingle(seq,cutPosition,currentMotif,'right',exactMatch=False)
+	sitesLeft = scanSingle(seq,cutPosition,currentMotif,'left',lastSharedLeft,lastSharedRight,exactMatch=False) # should be positive
+	sitesRight = scanSingle(seq,cutPosition,currentMotif,'right',lastSharedRight,lastSharedLeft,exactMatch=False) # should be negative
 	
-	leftSeqNum = 0
-	rightSeqNum = 0
-	
+	# Count how many possible sites have rejected primers
 	rejectedPrimers = 0
 	
 	for eachNum in [0,1]:
+		# Set up some initial vairables
 		eachSet = [sitesLeft,sitesRight][eachNum]
 		currentDirection = ['left','right'][eachNum]
 		currentSet = [[],[]]
-		currentRejects = 0
-		
-		if eachSet == [[0],[0]] or eachSet == [[],[]]: # FIXME: I hate this, fix scanSingle() and scanSequence() so it can only be one of these
+		lastShared = [lastSharedLeft,lastSharedRight][eachNum]
+		lastSharedReverse = [lastSharedRight,lastSharedLeft][eachNum]
+
+		# If there aren't any good sites to begin with, skip this loop
+		if eachSet == [[],[]]:
 			continue
 		elif eachSet[1] != []:
+			# Start typesetting some output
 			currentOut = []
 			currentOut.append("===============================")
 			
-			if any([value < 0 for value in eachSet[1]]):
+			# If any values are negative, reverse the sequences and indices
+			if any([value < 0 for value in eachSet[1]]): # negative values exist
 				# "1234"[-1] gives "4", while "4321"[1] gives "3"
-				currentSet[1] = [abs(x) for x in eachSet[1]]
-				currentSet[0] = [abs(x) for x in eachSet[0]]
+				currentSet[1] = [0-x for x in eachSet[1]]
+				currentSet[0] = [0-x for x in eachSet[0]]
 				currentSeq = revComp(seq)
-				currentTarget = revComp(target)
+				currentTarget = revComp(targetSeq)
 				currentMotif = currentMotif
 				currentOut.append("Sequences are reversed.")
+				lastSharedLeft = 0 - lastShared # FIXME: Check for off-by-one errors
+				lastSharedRight = 0 - lastSharedReverse # FIXME: Check for off-by-one errors
 			else:
 				currentSet[0] = eachSet[0]
 				currentSet[1] = eachSet[1]
 				currentSeq = seq
-				currentTarget = target
+				currentTarget = targetSeq
+			# Provide information on cut sites
 			currentOut.append("Enzyme: " + enzymeName)
 			outputstring1 = "Possible cut site found at position " + str(currentSet[1]) + "."
 			outputstring2 = "Problem cut site found at position " + str(currentSet[0]) + "."
 			currentOut.append(outputstring1)
 			currentOut.append(outputstring2)
 			
+			# Provide the WT sequence and the target site
+			# TODO: indicate the cut site in the output somehow
+			currentOut.append("WT Sequence: " + currentSeq)
+			if currentDirection == "left":
+				currentOut.append("Target Sequence:" + " "*(targetStart-16) + currentTarget) 
+			elif currentDirection == "right":
+				currentOut.append("Target Sequence:" + " "*(len(currentSeq)-3-targetStart-len(currentTarget)) + currentTarget) # TODO: check for off-by-one errors
 			
 			# Get proper enzyme direction and typeset the enzyme
 			# This accounts for cases of non-palindromic enzymes
@@ -811,56 +839,69 @@ def evaluateMutations(seq,targetSeq,enzymeInfo,enzymeName):
 				if motifDiff[0] > min(motifDiff[1:2]):
 					currentMotif = revComp(currentMotif)
 				currentOut.append(" "*(12+eachIndex) + currentMotif)
+			
+			# Indicate any exact cut sites in the shared regions
 			for eachIndex in currentSet[0]:
-				currentOut.append(" "*12+eachIndex) + "."*len(currentMotif)
+				currentOut.append(" "*(12+eachIndex) + "."*len(currentMotif))
 			
 			# Get the sites we want to make primers for
-			desiredSuitable = [sitesLeft,sitesRight][each][1]
-			
+			desiredSuitable = currentSet[1]
+			untenablePositions = currentSet[0]
 			# Multiple putative sites may exist, so check at each one
 			for eachSite in desiredSuitable:
-				alteredSeq = editSeq(seq,desiredSuitable,lastShared,currentMotif)
-				altSeqs = crisprEdit(alteredSeq,cutPosition,organism)
+				# set up a counter for how many editing events cut
+				usableSite = 0
+				
+				# Edit sequence so that the primer works
+				currentSite = seq[eachSite:eachSite+motifLen]
+				
+				if revComp(currentMotif).lower() == currentMotif.lower():
+					orientedMotif = currentMotif
+				else:
+					# TODO: check right orientation
+					orientedMotif = currentMotif
+				
+				orientedMotif = list(orientedMotif)
+				currentSite = list(currentSite)
+				
+				for each in range(0,lastSharedLeft-eachSite-1): 
+					if orientedMotif[each].lower() in ['g','c','t','a'] and orientedMotif[each].lower() != currentSite[each].lower():
+						currentSite[each] = orientedMotif[each] # FIXME: need to make it compatible with degenerate bases
+				orientedMotif = ''.join(orientedMotif)
+				currentSite = ''.join(currentSite)
+				seqLeft = seq[:eachSite]
+				seqRight = seq[(eachSite+motifLen):]
+				alteredSeq = seqLeft+currentSite+seqRight
+								
+				# Simulate CRISPR edits
+				altSeqs = crisprEdit(alteredSeq,cutPosition)
 				seqNum = len(altSeqs)
 			
-			for eachSequence in altSeqs:
-				# Check to see if there's an exact cut site in each edited sequence
-				# Each variable has form of [[untenable positions],[possible positions]]
-				sites = scanSingle(alteredSeq,eachSequence,currentMotif,currentDirection,exactMatch=True)
-				
-				# If there was a cut site to use, add it to the list
-				if sites[1] != []:
-					siteSeqNum += 1
-					siteSeqs.append(sites)
+				# See if the enzyme cuts the edited sites
+				for eachSequence in altSeqs:
+					cutTest = hamming(eachSequence[desiredSuitable[0]:desiredSuitable[0]+motifLen],currentMotif,True,True)
+					# TODO: switch this for proportionalDistance()
+					if 0 not in cutTest:
+						usableSite += 1
 			
-			# Examine whether the proportion of viable cuts is above the threshold
-			# TODO: is seqThreshold part of Settings?
-			if ([leftSeqNum,rightSeqNum][eachNum]/siteSeqNum) >= seqThreshold:
-				# This primer might work for screening
-				if currentDirection == "right":
-					outputSeq = revComp(seq)
-				else:
-					outputSeq = seq
-
-				for eachIndex in sites[1]:
-					# Generate primer
-					newPrimer = generatePrimer(seq1,sites[0],eachIndex,lastShared,currentMotif)
+				# Examine whether the proportion of viable cuts is above the threshold for this cut site
+				if (100*usableSite/seqNum) >= Settings.seqThreshold:
+					# Attempt to generate a primer
+					newPrimer = generatePrimer(seq,untenablePositions,eachSite,lastSharedLeft,currentMotif)
+					
+					# Typeset the primer if it worked
 					if newPrimer is not None:
 						currentOut.append("Possible screening primer found.")
-						currentOut.append(outputSeq)
-						currentOut.append(" "*12+currentLastShared-len(newPrimer[0]))+newPrimer[0])
-						continue
+						currentOut.append(" "*(12+lastSharedLeft-len(newPrimer[0]))+newPrimer[0])
+						output.append(currentOut)
 					else:
-						currentRejects += 1
-						continue
-				if currentRejects == len(currentSet[1]):
-					continue
-				output.append(currentOut)
-				rejectedPrimers += currentRejects
-	# If it gets to this point it's failed
-	if rejectedPrimers == len(sitesLeft[1])+len(sitesRight[1]):
+						rejectedPrimers += 1
+				else:
+					print("insufficient diagnostic primer")
+	if rejectedPrimers == (len(sitesLeft[1])+len(sitesRight[1])):
 		return(None)
-	return(output)
+	else:
+		return(output)
 
 def evaluateSites(seq1,seq2,enzymeInfo,enzymeName):
 	"""
@@ -887,10 +928,6 @@ def evaluateSites(seq1,seq2,enzymeInfo,enzymeName):
 	# Suitable positions are positions where there is either an exact match for a motif or a match below the threshold
 	# Suitable positions mark places that are diagnostic for one sequence or the other
 	
-	# If [[0],[0]] is returnd, then the motif cannot be used for these sequences because of a downstream exact match
-
-	# TODO: get Settings object
-	
 	currentMotif = enzymeInfo[0]
 	# Search from Left
 	sitesLeft = scanSequence(seq1,seq2,currentMotif,'left')
@@ -906,7 +943,7 @@ def evaluateSites(seq1,seq2,enzymeInfo,enzymeName):
 	for eachSet in [sitesLeft,sitesRight]:
 		currentRejects = 0
 		currentSet=[[],[]]
-		if eachSet == [[0],[0]] or eachSet == [[],[]]:
+		if eachSet == [[],[]]:
 			return(None)
 		elif eachSet[1] != []:
 			currentOut = []
@@ -1074,8 +1111,7 @@ def generatePrimer(seq,untenablePositions,desiredSuitable,lastShared,currentMoti
 	currentStart = lastShared
 	primerList = []
 	output = []
-	
-	
+
 	# Figure out which base of the motif will have to be changed
 	motifBase = 0
 	while currentMotif[motifBase].lower() == "n":
@@ -1126,7 +1162,7 @@ def generatePrimer(seq,untenablePositions,desiredSuitable,lastShared,currentMoti
 	orientedMotif = list(orientedMotif)
 	currentSite = list(currentSite)
 	for each in range(0,lastShared-desiredSuitable): # FIXME: think i have a fencepost error here, needs to be lastshared-desiredSuitable+1 I think.
-		if orientedMotif[each].lower() in ['g','c','t','a'] and orientedMotif[each].lower() != currentSite[each].lower():
+		if orientedMotif[each].lower() in ['g','c','t','a'] and orientedMotif[each].lower() != currentSite[each].lower():# FIXME: what about enzymes with degenerate bases?
 			currentSite[each] = orientedMotif[each]
 	orientedMotif = ''.join(orientedMotif)
 	currentSite = ''.join(currentSite)
@@ -1146,14 +1182,12 @@ def generatePrimer(seq,untenablePositions,desiredSuitable,lastShared,currentMoti
 	filterList = [x for x in range(0,len(output)) if output[x] <= 0]
 	primerList = [primerList[x] for x in range(0,len(output)) if x not in filterList]
 	output = [output[x] for x in range(0,len(output)) if x not in filterList]
-	
 	# TODO: it always checks primer length based on TM right now, have it switch based on user setting
 	
 	# Find minimum diff
 	outputDiff = [abs(x - Settings.TM) for x in output]
 	# Choose the best primer sub-sequence based on difference from optimum Tm
 	bestPrimer = [primerList[x] for x in range(0,len(outputDiff)) if outputDiff[x] == min(outputDiff)]
-	
 	# See if the primer violates any rules
 	# Rule: G/T mismatch works at 3' end, but G/A and G/G mismatches don't. (Simsek 2000)
 	# Rule: Mismatches to canonical shared sequence less than hamming dist
@@ -1167,10 +1201,8 @@ def generatePrimer(seq,untenablePositions,desiredSuitable,lastShared,currentMoti
 		# if template is G and primer 3' is T, ok.
 		# Allowable: T/T, T/C, T/G
 		if templateBase == 'g' and lastPrimerBase == 't':
-			print('allowing a mismatching primer')
 			return(bestPrimer)
 		elif templateBase == 't' and lastPrimerBase in ['t','c','g']:
-			print('allowing a mismatching primer')
 			return(bestPrimer)
 		else:
 			return(None)
@@ -1193,9 +1225,9 @@ def crisprEdit(seq,position):
 	Output
 	output = list of modified strings
 	"""
-
 	output = []
 	seqNew = seq
+	# FIXME: not making all the edits it's supposed to be making!!!
 	
 	# Get the edit profile for the current organism
 	editsToMake = Settings.organismEditProfile

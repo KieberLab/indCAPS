@@ -24,10 +24,10 @@ Mismatch Max: <input type="text" name="ham" value="2"><br>
 <div class="expandedText" style="display:none">
 <a href="#" class="hide">Close</a><br>
 Amplicon Length (bp): <input type="text" name="ampliconLength" value="90"><br>
-Primer Type: TM <input type="radio" name="primerType" checked> Length <input type="radio" name="primerType"><br>
+Primer Type: TM <input type="radio" name="primerType" value="tm" checked> Length <input type="radio" name="primerType" value="length"><br>
 Primer Length (bp): <input type="text" name="primerLength" value="30"><br>
 Melting Temperature (C): <input type="text" name="tm" value="60"><br>
-Allow 3' G/T Mismatches: <input type="checkbox" name="allowMM" value="yes"><br>
+Allow 3' G/T Mismatches: Yes <input type="radio" name="allowMM" value="yes" checked> No <input type="radio" name="allowMM" value="no"><br>
 Sodium Concentration (microMolar): <input type="text" name="sodiumConc" value="0.05"><br>
 Primer Concentration (milliMolar): <input type="text" name="primerConc" value="50"><br>
 </div>
@@ -51,20 +51,18 @@ Identification of CAPS or dCAPS primers for screening purposes (non-functional, 
 WT sequence: <input type="text" name="seq"><br>
 CRISPR target sequence: <input type="text" name="targetSeq"><br>
 Mismatch Max: <input type="text" name="ham" value="1"><br>
-Organism: <input type="text" name="org" value="generic"><br>
-Cutoff percent: <input type="text" name="cutoffPercent" value="0.1"><br>
+Organism: <input type="text" name="organism" value="generic"><br>
+Cutoff percent: <input type="text" name="cutoffPercent" value="10"><br>
 <input type="submit" value="Submit"><br>
 <a href="#" class="show">Advanced Options</a>
 <div class="expandedText" style="display:none">
 <a href="#" class="hide">Close</a><br>
 Amplicon Length (bp): <input type="text" name="ampliconLength" value="90"><br>
-Primer Type: TM <input type="radio" name="primerType" checked> Length <input type="radio" name="primerType"><br>
+Primer Type: TM <input type="radio" name="primerType" value="tm" checked> Length <input type="radio" name="primerType" value="length"><br>
 Primer Length (bp): <input type="text" name="primerLength" value="30"><br>
 Melting Temperature (C): <input type="text" name="tm" value="60"><br>
-Allow 3' G/T Mismatches: <input type="checkbox" name="allowMM" value="yes"><br>
-Sodium Concentration (microMolar): <input type="text" name="sodiumConc" value="0.05"><br>
+Allow 3' G/T Mismatches: Yes <input type="radio" name="allowMM" value="yes" checked> No <input type="radio" name="allowMM" value="no"><br>Sodium Concentration (microMolar): <input type="text" name="sodiumConc" value="0.05"><br>
 Primer Concentration (milliMolar): <input type="text" name="primerConc" value="50"><br>
-Screening Threshold: <input type="text" name="threshold" value="50"><br>
 </div>
 </form>
 </div>

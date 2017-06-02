@@ -5,9 +5,9 @@ def checkSingleSite(seqToTest,target):
 	seqToTest = seqToTest.lower()
 	target = target.lower()
 	matchNumber = 0
-	for eachPosition in range(0,len(seq)-(len(target)-1)):
-		currentSubset = seq[eachPosition:(eachPosition+len(target))]
-		if hamming(currentSubset,target,allComparisons=True,allResults=False) == 0:
+	for eachPosition in range(0,len(seqToTest)-(len(target)-1)):
+		currentSubset = seqToTest[eachPosition:(eachPosition+len(target))]
+		if indCAPS.hamming(currentSubset,target,allComparisons=True,allResults=False) == 0:
 			matchNumber += 1
 	return(matchNumber)
 
@@ -42,6 +42,8 @@ def evaluateInput(seq1,seq2=None):
 	only seq1 will be tested and only for non-bases and extraneous whitespace. If seq2 is provided, the sequences are also
 	tested for the number of bases between ends and last 
 	shared bases and also amplicon length.
+	
+	Returns [seq1,seq2,notes] where notes is a list of warnings and notes on modifications
 	"""
 	# Returns [seq1,seq2,notes] where notes is a list of warnings and notes on modifications
 	notes = []
