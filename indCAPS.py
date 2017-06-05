@@ -4,37 +4,47 @@ Examine multiple strings representing DNA bases for cases where
 diagnostic PCR primers can be constructed to distinguish the strings.
 """
 # -*- coding: utf-8 -*-
-#seq1 = 'GCGGAgggcccCTCAAGATCCCGAGTgggTCTTATcccCAGTTTCTTGGCTCTGTTA' #arguments[1]
-#seq2 = 'GCGGAgggcccCTCAAGATCCCGAGTgggcccCAGTTTCTTGGCTCTGTTA' #arguments[2]
-#currentMotif = 'gggccc'
-#hamNum = 4 #arguments[3]
 from math import log
 import itertools
+import warnings
 
+# Some old cruft from earlier versions but useful to have some sequences around for testing purposes.
 # Sample sequences from Leah
 #seq1 = "TGTGTGTGCAGGGAGAAGCCAAATGTGGATTTTGACAGGGTGGACTCGTATGTGCATCAG"
 #seq2 = "TGTGTGTGCAGGGAGAAGCCAAATGTGGATTTGACAGGGTGGACTCGTATGTGCATCAG"
+# other random sequences
+#seq1 = 'GCGGAgggcccCTCAAGATCCCGAGTgggTCTTATcccCAGTTTCTTGGCTCTGTTA'
+#seq2 = 'GCGGAgggcccCTCAAGATCCCGAGTgggcccCAGTTTCTTGGCTCTGTTA'
+#currentMotif = 'gggccc'
+#hamNum = 4
 
 ## Enzymes
 # Will not include nicking enzymes or intron-encoding enzymes or homing enzymes
 # Also does not include two-site cutters: BaeI, BsaXI, CspCI, BcgI
 from enzymeList import enzymes
 
-
 ## Custom Classes
 class SettingsObject:
 	"""
 	This object should be in the global scope and hold all the 
 	invariant information on things like parameters of primer design.
+	When calling functions from the indCAPS package, make sure the first
+	thing you do is set indCAPS.Settings = X, where X is the name of your 
+	SettingsObject() object.
+	
+	Nearly all functions in this package depend on this object existing.
 	
 	TM = numerical, desired melting temperature of primer
 	ampliconLength = integer, length of dCAPS amplicon
-	primerType = string, choice of 'tm' or ''
+	primerType = string, choice of 'tm' or 'length'
 	primerLength = integer, length of primer to design
 	allowMismatch = boolean, whether to allow 3' mismatch in primrs
 	hammingThreshold = integer, mismatch threshold
 	organism = string, species name
-	organismEditProfile = unknown format, for specifying probable crispr edits
+	sodiumConc = float, units milliMolar
+	primerConc = float, units nanoMolar
+	seqThreshold = float, range from 0-100, cutoff percent for CRISPR screening
+	
 	"""
 	def __init__(self,TM=55,ampliconLength=70,primerType='tm',primerLength=25,allowMismatch=False,hammingThreshold=1,organism=None,sodiumConc=0.05,primerConc=50*10**(-9),seqThreshold=0):
 		self.TM = TM
@@ -62,12 +72,7 @@ class SettingsObject:
 		else:
 			self.organismEditProfile = [1,-1]
 
-
 ## Custom Functions
-def hammingBool(seq1,seq2,allResults=False):
-	# Instead of returning a singular value, returns lists of bools indicating whether there's a match
-	return(False)
-	
 def proportionalDistance(mutMotif,motif):
 	"""
 	very incomplete function
@@ -155,13 +160,16 @@ def hamming(seq1,seq2,allResults=False,allComparisons=True):
 	
 	if len(seq1) != len(seq2):
 		warnings.warn("Comparing sequences of unequal length.")
-
-#	
-#	distance1 = len(seq1) - sum([x == y for (x,y) in zip(seq1,seq2)])
-#	# These next two are for cases of non-palindromic motifs
-#	distance2 = len(seq1) - sum([x == y for (x,y) in zip(seq1,revComp(seq2))])
-#	distance3 = len(seq1) - sum([x == y for (x,y) in zip(revComp(seq1),seq2)])
-#	return(min(distance1,distance2,distance3))
+		
+	# Originally I had some fancy-pants list comprehension approach put in here but I abandoned it to have more control over the process. Keeping it around because I kinda like the elegance and might want to use it in a different project.
+	# distance1 = len(seq1) - sum([x == y for (x,y) in zip(seq1,seq2)])
+	# These next two are for cases of non-palindromic motifs
+	# distance2 = len(seq1) - sum([x == y for (x,y) in zip(seq1,revComp(seq2))])
+	# distance3 = len(seq1) - sum([x == y for (x,y) in zip(revComp(seq1),seq2)])
+	# return(min(distance1,distance2,distance3))
+	
+	# Define permissible matches.
+	# Follows IUPAC base conventions with the exception of X, which implies an inserted base following a CRISPR/Cas9 editing event.
 	possibleMatches = {'a':['a','r','w','m','d','h','v','n','x'],
 				  'g':['g','r','s','k','b','d','v','n','x'],
 				  'c':['c','y','s','m','b','h','v','n','x'],
@@ -183,9 +191,12 @@ def hamming(seq1,seq2,allResults=False,allComparisons=True):
 	# However, if this were coded for general use, it would produce incorrect results
 	# eg, 'r' is returned here as a valid match for 'n', when that is not strictly true
 	
+	# Construct sets of sequences for comparison purposes
 	sets = [ [seq1,seq2] , [revComp(seq1).lower(),seq2] , [seq1, revComp(seq2).lower()] ]
 	
 	setOutput = [0] * len(sets)
+	
+	# Iterate over each set checking its matches
 	for eachSet in range(0,len(sets)):
 		currentSet = sets[eachSet]
 		currentSeq1 = currentSet[0]
@@ -242,7 +253,6 @@ def revComp(seq1):
 	seqString = seqString.upper()
 	return(seqString)
 
-	
 ## Melting temperature calculations
 def baseNumbers(seq):
 	"""
@@ -279,7 +289,9 @@ def baseNumbers(seq):
 # from 1. Sugimoto, N., Nakano, S. I., Yoneyama, M. and Honda, K. I. Improved thermodynamic parameters and helix initiation factor to predict stability of DNA duplexes. Nucleic Acids Res. 24, 4501–4505 (1996).
 
 def deltaG(seq):
-	# I really don't need this function, I dont know why I included it.
+	"""
+	Calcuating free energy of a sequence for use in primer melting temperature calculation.
+	"""
 	seq = seq.lower()
 	dG = {'aa':-1.2,
 		'tt':-1.2,
@@ -307,7 +319,10 @@ def deltaG(seq):
 
 
 def deltaH(seq):
-	# Units kcal/mole
+	"""
+	Calculates enthalpy of a sequence for use in primer melting temperature calculation.
+	Units kcal/mole
+	"""
 	seq = seq.lower()
 	dH = {'aa':-8.0,
 		'tt':-8.0,
@@ -333,8 +348,11 @@ def deltaH(seq):
 		dHout += 0
 	return(dHout)
 		
-
 def deltaS(seq):
+	"""
+	Calculates entropy of a sequence for use in primer melting temperature calculation.
+	Units cal/(mole*K)
+	"""
 	# Units cal/(mole*K)
 	seq = seq.lower()
 	dS = {'aa':-21.9,
@@ -361,7 +379,6 @@ def deltaS(seq):
 		dSout += -1.4
 	return(dSout)
 
-
 def saltAdjusted(seq):
 	return(None)
 
@@ -369,6 +386,9 @@ def basicTemp(seq):
 	return(None)
 
 def nearestNeighbor(seq):
+	"""
+	Calculates DNA sequence melting temperature using the nearest neighbor method.
+	"""
 	# typical salt conc is [50 mM], keep it between [0.01 M] and [1 M] 
 	# typical primer conc is 50 nM
 	# keep it above 8 bases
@@ -377,8 +397,14 @@ def nearestNeighbor(seq):
 	T = (1000*(-deltaH(seq))) / ((-deltaS(seq))+R*log(1/Settings.primerConc))-272.9+16.6*log(Settings.sodiumConc,10) # FIXME: i think this is messed up somewhere? dont i need a -3.4kcal/kmole? it's not drastically wrong i dont think, just slightly messed up. oh wait i think i'm fine, the 3.4 is included in the deltaH() function
 	return(T)
 
-
 def estimateTM(seq,func='nearestNeighbor'):
+	"""
+	Estimates primer melting temperature using one of several methods.
+	Available methods:
+	Nearest Neighbor
+	Salt Adjusted
+	Basic
+	"""
 	# Default function is 'nearestNeighbor'
 	# see http://biotools.nubic.northwestern.edu/OligoCalc.html
 	# Find number of each base
@@ -394,7 +420,6 @@ def estimateTM(seq,func='nearestNeighbor'):
 	# If length greater than 40:
 	# use salt adjusted
 	return(None)
-
 
 def lastSharedBase(seq1,seq2,direction):
 	"""
@@ -497,7 +522,6 @@ def scanUnshared(seq,currentMotif,lastShared,lastSharedReverse):
 				seqUSpos.append(eachPosition+lastShared - motifLen + 1)
 				seqUSexact.append(eachPosition+lastShared - motifLen + 1)
 	return([seqUSpos,seqUSexact])
-
 
 def scanSequence(seq1,seq2,currentMotif,direction):
 	"""
@@ -725,7 +749,7 @@ def evaluateMutations(seq,targetSeq,enzymeInfo,enzymeName):
 	edited with CRISPR/Cas9 methods for sites likely to be 
 	usable as screening sites.
 	
-	Returns list of strings of output to return to html.
+	Returns list of strings of output to return to html renderer.
 	"""
 	# ALGO: check enzyme for case where it cuts in WT. if it doesn't, skip it. if it does, check the cut position. if the cut position is flanked by Ns, skip checking. if the cut position isn't, make probable edits.
 
@@ -828,7 +852,7 @@ def evaluateMutations(seq,targetSeq,enzymeInfo,enzymeName):
 			# TODO: indicate the cut site in the output somehow
 			currentOut.append("WT Sequence: " + currentSeq)
 			if currentDirection == "left":
-				currentOut.append("Target Sequence:" + " "*(targetStart-16) + currentTarget) 
+				currentOut.append("Target Sequence:" + " "*(targetStart-3) + currentTarget) 
 			elif currentDirection == "right":
 				currentOut.append("Target Sequence:" + " "*(len(currentSeq)-3-targetStart-len(currentTarget)) + currentTarget) # TODO: check for off-by-one errors
 			
@@ -1040,7 +1064,6 @@ def putativePrimer(seq,lastShared):
 		primerList.append(currentPrimer)
 		currentStart -= 1
 	
-
 	if Settings.primerType == 'tm':
 		output = []
 		for eachPrimer in primerList:
@@ -1122,7 +1145,6 @@ def generatePrimer(seq,untenablePositions,desiredSuitable,lastShared,currentMoti
 			oldBase = seq[positionToModify].lower()
 			seq[positionToModify] = revComp(oldBase)
 			seq = ''.join(seq)
-			
 		else:
 			# Case where more than one untenable position
 			indexIterator = iter(range(0,len(untenablePositions)-1))
@@ -1231,8 +1253,7 @@ def crisprEdit(seq,position):
 	"""
 	output = []
 	seqNew = seq
-	# FIXME: not making all the edits it's supposed to be making!!!
-	
+		
 	# Get the edit profile for the current organism
 	editsToMake = Settings.organismEditProfile
 	
@@ -1255,6 +1276,7 @@ def crisprEdit(seq,position):
 	return(output)
 
 
+# OLDER DESIGN NOTES - Might be some mistakes in here or abandoned ideas. Mostly keeping in case I need it later.
 # overall region to test:
 # [lastShared - (motifLen-2) + iterator] to [lastShared + 1 + iterator]
 # iterator is [0 .. motifLen-2]
