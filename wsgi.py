@@ -102,7 +102,7 @@ def screening():
 		except Exception as e:
 			errors.append("Error in input form.")
 			errors.append(e)
-			return(render_template('results.html',allResults=[],notes=errors))
+			return(render_template('results.html',allResults=None,notes=errors))
 		if seq and hamDist and TM:
 			# Make settings object
 			Settings = indCAPS.SettingsObject(TM=TM,ampliconLength=ampliconLength,primerType=primerType,primerLength=primerLength,allowMismatch=allowMisMatch,hammingThreshold=hamDist,organism=organism,sodiumConc=sodiumConc,primerConc=primerConc*10**(-9),seqThreshold=seqThreshold)

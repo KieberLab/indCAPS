@@ -12,8 +12,8 @@ from math import log
 import itertools
 
 # Sample sequences from Leah
-seq1 = "TGTGTGTGCAGGGAGAAGCCAAATGTGGATTTTGACAGGGTGGACTCGTATGTGCATCAG"
-seq2 = "TGTGTGTGCAGGGAGAAGCCAAATGTGGATTTGACAGGGTGGACTCGTATGTGCATCAG"
+#seq1 = "TGTGTGTGCAGGGAGAAGCCAAATGTGGATTTTGACAGGGTGGACTCGTATGTGCATCAG"
+#seq2 = "TGTGTGTGCAGGGAGAAGCCAAATGTGGATTTGACAGGGTGGACTCGTATGTGCATCAG"
 
 ## Enzymes
 # Will not include nicking enzymes or intron-encoding enzymes or homing enzymes
@@ -771,7 +771,7 @@ def evaluateMutations(seq,targetSeq,enzymeInfo,enzymeName):
 			tempLastSharedRight = lastSharedBase(eachPair[0],eachPair[1],'right')
 			if tempLastSharedLeft < lastSharedLeft:
 				lastSharedLeft = tempLastSharedLeft
-			if tempLastSharedRight < lastSharedRight:
+			if tempLastSharedRight > lastSharedRight:
 				lastSharedRight = tempLastSharedRight
 	else:
 		lastSharedLeft = lastSharedBase(tempEditedSeqs[0],seq,'left') # should be positive
@@ -838,11 +838,11 @@ def evaluateMutations(seq,targetSeq,enzymeInfo,enzymeName):
 				motifDiff = hamming(currentMotif,currentSeq[eachIndex:(eachIndex+motifLen)],allResults=True)
 				if motifDiff[0] > min(motifDiff[1:2]):
 					currentMotif = revComp(currentMotif)
-				currentOut.append(" "*(12+eachIndex) + currentMotif)
+				currentOut.append(" "*(13+eachIndex) + currentMotif)
 			
 			# Indicate any exact cut sites in the shared regions
 			for eachIndex in currentSet[0]:
-				currentOut.append(" "*(12+eachIndex) + "."*len(currentMotif))
+				currentOut.append(" "*(13+eachIndex) + "."*len(currentMotif))
 			
 			# Get the sites we want to make primers for
 			desiredSuitable = currentSet[1]
@@ -853,7 +853,7 @@ def evaluateMutations(seq,targetSeq,enzymeInfo,enzymeName):
 				usableSite = 0
 				
 				# Edit sequence so that the primer works
-				currentSite = seq[eachSite:eachSite+motifLen]
+				currentSite = currentSeq[eachSite:eachSite+motifLen]
 				
 				if revComp(currentMotif).lower() == currentMotif.lower():
 					orientedMotif = currentMotif
@@ -869,8 +869,8 @@ def evaluateMutations(seq,targetSeq,enzymeInfo,enzymeName):
 						currentSite[each] = orientedMotif[each] # FIXME: need to make it compatible with degenerate bases
 				orientedMotif = ''.join(orientedMotif)
 				currentSite = ''.join(currentSite)
-				seqLeft = seq[:eachSite]
-				seqRight = seq[(eachSite+motifLen):]
+				seqLeft = currentSeq[:eachSite]
+				seqRight = currentSeq[(eachSite+motifLen):]
 				alteredSeq = seqLeft+currentSite+seqRight
 								
 				# Simulate CRISPR edits
@@ -887,14 +887,15 @@ def evaluateMutations(seq,targetSeq,enzymeInfo,enzymeName):
 				# Examine whether the proportion of viable cuts is above the threshold for this cut site
 				if (100*usableSite/seqNum) >= Settings.seqThreshold:
 					# Attempt to generate a primer
-					newPrimer = generatePrimer(seq,untenablePositions,eachSite,lastSharedLeft,currentMotif)
+					newPrimer = generatePrimer(currentSeq,untenablePositions,eachSite,lastSharedLeft,currentMotif)
 					
 					# Typeset the primer if it worked
 					if newPrimer is not None:
 						currentOut.append("Possible screening primer found.")
-						currentOut.append(" "*(12+lastSharedLeft-len(newPrimer[0]))+newPrimer[0])
+						currentOut.append(" "*(13+lastSharedLeft-len(newPrimer[0]))+newPrimer[0])
 						output.append(currentOut)
 					else:
+						print("primer not generated")
 						rejectedPrimers += 1
 				else:
 					print("insufficient diagnostic primer")
@@ -1060,14 +1061,6 @@ def putativePrimer(seq,lastShared):
 		filterList = [abs(len(x) - Settings.minLength) for x in primerList]
 		bestPrimer = [primerList[x] for x in positionList if filterList[x] == min(filterList)]
 		return(bestPrimer)
-		
-def typesetOutput(seq1,seq2,currentMotif,mode="crispr"):
-	"""
-	At some point I intend to move the nearly identical 
-	typesetting code out of evaluateSites() and evaluateMutations()
-	and put it here in one place.
-	"""
-	return(None)
 
 def generatePrimer(seq,untenablePositions,desiredSuitable,lastShared,currentMotif):
 	"""
@@ -1106,7 +1099,8 @@ def generatePrimer(seq,untenablePositions,desiredSuitable,lastShared,currentMoti
 	# Didn't even have a valid GGGCCC site, because the first base in the primer was partway through that sequence
 	
 	# TODO: Check global settings object for allowGTMM
-	originalSeq = seq
+	originalSeq = seq.lower()
+	currentMotif = currentMotif.lower()
 	motifLen = len(currentMotif)
 	currentStart = lastShared
 	primerList = []
@@ -1201,14 +1195,24 @@ def generatePrimer(seq,untenablePositions,desiredSuitable,lastShared,currentMoti
 		# if template is G and primer 3' is T, ok.
 		# Allowable: T/T, T/C, T/G
 		if templateBase == 'g' and lastPrimerBase == 't':
+			print("returning primer "+str(bestPrimer))
 			return(bestPrimer)
 		elif templateBase == 't' and lastPrimerBase in ['t','c','g']:
+			print("returning primer "+str(bestPrimer))
 			return(bestPrimer)
 		else:
+			print("can't use primer because of bad 3' mismatch, rejecting.")
+			print(lastPrimerBase)
+			print(lastSeqBase)
 			return(None)
 	elif lastPrimerBase != lastSeqBase and Settings.allowMismatch == False:
+		print("can't use primer, rejecting. 3' mismatch")
+		print(lastPrimerBase)
+		print(lastSeqBase)
+		print(Settings.allowMismatch)
 		return(None)
 	else:
+		print("returning primer "+str(bestPrimer))
 		return(bestPrimer)
 
 def crisprEdit(seq,position):
