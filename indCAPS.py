@@ -75,58 +75,90 @@ class SettingsObject:
 ## Custom Functions
 def proportionalDistance(mutMotif,motif):
 	"""
-	very incomplete function
+	Computes a hamming distance between two sequences. Returns a list of 
+	two-item lists. Returned values are:
+	[number of comparisons, proportion of matching comparisons, lowHamDist, highHamDist]
+	
+	This is specifically intended to match a hypothetical, defined DNA sequence against
+	a restriction site motif. The only nonspecific base in the mutant motif should be
+	the X characters introduced to represent insertions.
+	
+	Example: The sequence "GCAA" compared to "GCXA", representing a single
+	base pair insertion, has the possible values "GCTA", "GCAA", "GCGA", "GCTA".
+	Of the four possible comparisons, one is a match, and this would be returned as [4,0.25]
 	"""
 	# Mut will have X characters.
 	# Returns assessment of most optimistic match and also proportion of all matches that it will match
-	possibleMatches = {'a':['a','r','w','m','d','h','v','n'],
-				  'g':['g','r','s','k','b','d','v','n'],
-				  'c':['c','y','s','m','b','h','v','n'],
-				  't':['t','y','w','k','b','d','h','n'],
-				  'r':['a','g','n'],
-				  'y':['c','t','n'],
-				  's':['g','c','n'],
-				  'w':['a','t','n'],
-				  'k':['g','t','n'],
-				  'm':['a','c','n'],
-				  'b':['c','g','t','n'],
-				  'd':['a','g','t','n'],
-				  'h':['a','c','t','n'],
-				  'v':['a','c','g','n'],
-				  'n':['a','g','c','t','r','y','s','w','k','m','b','d','h','v','n']}
+	possibleMatches = {'a':['a','r','w','m','d','h','v','n','x'],
+					   'g':['g','r','s','k','b','d','v','n','x'],
+					   'c':['c','y','s','m','b','h','v','n','x'],
+					   't':['t','y','w','k','b','d','h','n','x'],
+					   'r':['a','g','n','x'],
+					   'y':['c','t','n','x'],
+					   's':['g','c','n','x'],
+					   'w':['a','t','n','x'],
+					   'k':['g','t','n','x'],
+					   'm':['a','c','n','x'],
+					   'b':['c','g','t','n','x'],
+					   'd':['a','g','t','n','x'],
+					   'h':['a','c','t','n','x'],
+					   'v':['a','c','g','n','x'],
+					   'n':['a','g','c','t','r','y','s','w','k','m','b','d','h','v','n','x'],
+					   'x':['a','g','c','t','r','y','s','w','k','m','b','d','h','v','n','x']}
 	
-	mut = mut.lower()
+	mutMotif = mutMotif.lower()
 	motif = motif.lower()
 	
-	sets = [ [mut,motif] , [revComp(mut),motif] , [mut, revComp(motif)] ]
+	sets = [ [mutMotif,motif] , [revComp(mutMotif).lower(),motif] , [mutMotif, revComp(motif).lower()] ]
 	
-	setOutput = [0,0] * len(sets)
+	setOutput = []
 	
-	for eachSet in sets:
+	# hmmm wait this isn't a useful thing. what i should be doing is probing for an exact match.
+	
+	for eachNumber in range(0,len(sets)):
+		# Set up initial data
+		eachSet = sets[eachNumber]
 		currentMut = eachSet[0]
 		currentMotif = eachSet[1]
+		
+		# Set up hamming distance counter
 		currentHam = 0
+		
+		# Proportion of possible comparisons which are matches
 		currentProp = 1
+		
+		# Number of possible comparisons (one if no X in sequence, multiple of 4 if X in sequence)
+		comparisons = 0
+		
+		# Iterate over bases
 		for eachPos in range(0,len(currentMut)):
 			mutBase = currentMut[eachPos]
 			motifBase = currentMotif[eachPos]
 			
+			# Check to see if there's a match at all
+			if mutBase not in possibleMatches[motifBase]:
+				currentHam += 1
+			
+			# If there's an X, increase comparison counter and reduce proportion variable
 			if mutBase == "x":
-				if mutBase in ['g','c','a','t']:
+				comparisons += 4
+				if motifBase in ['g','c','a','t']:
 					currentProp = currentProp * 1/4
 				
-				elif mutBase in ['r','y','s','w','k','m']:
+				elif motifBase in ['r','y','s','w','k','m']:
 					currentProp = currentProp * 1/2
 				
-				elif mutBase in ['b','d','h','v']:
+				elif motifBase in ['b','d','h','v']:
 					currentProp = currentProp * 3/4
-				
-				elif mutBase == "n":
-					return(None)
-				
-			else:
-				return(None)
-	return(None)
+		
+		# If no Xs in sequence, then only one comparison can be made
+		if comparisons == 0:
+			comparisons = 1
+		
+		# Find worst case hamming distance and construct output
+		hamDistHigh = currentHam + len([base for base in currentMut if base == "x"])
+		setOutput.append([comparisons,currentProp,currentHam,hamDistHigh])
+	return(setOutput)
 	
 def hamming(seq1,seq2,allResults=False,allComparisons=True):
 	"""
@@ -169,7 +201,7 @@ def hamming(seq1,seq2,allResults=False,allComparisons=True):
 	# return(min(distance1,distance2,distance3))
 	
 	# Define permissible matches.
-	# Follows IUPAC base conventions with the exception of X, which implies an inserted base following a CRISPR/Cas9 editing event.
+	# Follows IUPAC base conventions with the exception of X, which implies an inserted base following a CRISPR/Cas9 editing event. X is treated here as an N.
 	possibleMatches = {'a':['a','r','w','m','d','h','v','n','x'],
 				  'g':['g','r','s','k','b','d','v','n','x'],
 				  'c':['c','y','s','m','b','h','v','n','x'],
@@ -758,7 +790,6 @@ def evaluateMutations(seq,targetSeq,enzymeInfo,enzymeName):
 	
 	# Scan targetSeq across seq to find matching position
 	# I assume there is only one cut site because a check should have performed for multiple match sites before it ever got this far. Also assuming there is exactly one because of same pre-checks.
-	print("Checking enzyme "+str(enzymeName))
 	# Initializing variables
 	currentMotif = enzymeInfo[0]
 	canCutLeft = False
@@ -888,6 +919,7 @@ def evaluateMutations(seq,targetSeq,enzymeInfo,enzymeName):
 				orientedMotif = list(orientedMotif)
 				currentSite = list(currentSite)
 				
+				# Change bases and reconstruct altered sequence
 				for each in range(0,lastSharedLeft-eachSite-1): 
 					if orientedMotif[each].lower() in ['g','c','t','a'] and orientedMotif[each].lower() != currentSite[each].lower():
 						currentSite[each] = orientedMotif[each] # FIXME: need to make it compatible with degenerate bases
@@ -900,16 +932,28 @@ def evaluateMutations(seq,targetSeq,enzymeInfo,enzymeName):
 				# Simulate CRISPR edits
 				altSeqs = crisprEdit(alteredSeq,cutPosition)
 				seqNum = len(altSeqs)
-			
+				
+				# Set up variables to count cuts and tests
+				comparisonCount = 0
+				cutCount = 0
+				
 				# See if the enzyme cuts the edited sites
 				for eachSequence in altSeqs:
-					cutTest = hamming(eachSequence[desiredSuitable[0]:desiredSuitable[0]+motifLen],currentMotif,True,True)
-					# TODO: switch this for proportionalDistance()
-					if 0 not in cutTest:
-						usableSite += 1
-			
+					# Find the proportional distance between the edited and motif sequences
+					proportionTest = proportionalDistance(eachSequence[desiredSuitable[0]:desiredSuitable[0]+motifLen],currentMotif)
+					
+					# Get the set with the best match
+					setToUse = [comp for comp in proportionTest if comp[0] == min([comp2[0] for comp2 in proportionTest])][0]
+					
+					# Add the number of comparisons made
+					comparisonCount += setToUse[0]
+					
+					# Add the number of possible cuts if any exist
+					if setToUse[2] == 0:
+						cutCount += setToUse[0] * setToUse[1]
+					
 				# Examine whether the proportion of viable cuts is above the threshold for this cut site
-				if (100*usableSite/seqNum) >= Settings.seqThreshold:
+				if (100*cutCount/comparisonCount) >= Settings.seqThreshold:
 					# Attempt to generate a primer
 					newPrimer = generatePrimer(currentSeq,untenablePositions,eachSite,lastSharedLeft,currentMotif)
 					
@@ -919,10 +963,7 @@ def evaluateMutations(seq,targetSeq,enzymeInfo,enzymeName):
 						currentOut.append(" "*(13+lastSharedLeft-len(newPrimer[0]))+newPrimer[0])
 						output.append(currentOut)
 					else:
-						print("primer not generated")
 						rejectedPrimers += 1
-				else:
-					print("insufficient diagnostic primer")
 	if rejectedPrimers == (len(sitesLeft[1])+len(sitesRight[1])):
 		return(None)
 	else:
@@ -1209,6 +1250,14 @@ def generatePrimer(seq,untenablePositions,desiredSuitable,lastShared,currentMoti
 	# Rule: Mismatches to canonical shared sequence less than hamming dist
 	lastPrimerBase = bestPrimer[0][-1].lower()
 	lastSeqBase = originalSeq[lastShared-1] # wait should this just be lastshared and not -1?
+	
+	# Check primer against overall hamming distance
+	bestPrimerStart = lastShared - len(bestPrimer)
+	hamTest = hamming(bestPrimer,originalSeq[bestPrimerStart:lastShared],False,True)
+	if hamTest > Settings.hammingThreshold:
+		return(None)
+	
+	# Check primer against mismatch criteria
 	if lastPrimerBase != lastSeqBase and Settings.allowMismatch == True:
 		# get the template base, which is the complement of the listed base
 		templateBase = revComp(lastSeqBase).lower()
@@ -1217,24 +1266,14 @@ def generatePrimer(seq,untenablePositions,desiredSuitable,lastShared,currentMoti
 		# if template is G and primer 3' is T, ok.
 		# Allowable: T/T, T/C, T/G
 		if templateBase == 'g' and lastPrimerBase == 't':
-			print("returning primer "+str(bestPrimer))
 			return(bestPrimer)
 		elif templateBase == 't' and lastPrimerBase in ['t','c','g']:
-			print("returning primer "+str(bestPrimer))
 			return(bestPrimer)
 		else:
-			print("can't use primer because of bad 3' mismatch, rejecting.")
-			print(lastPrimerBase)
-			print(lastSeqBase)
 			return(None)
 	elif lastPrimerBase != lastSeqBase and Settings.allowMismatch == False:
-		print("can't use primer, rejecting. 3' mismatch")
-		print(lastPrimerBase)
-		print(lastSeqBase)
-		print(Settings.allowMismatch)
 		return(None)
 	else:
-		print("returning primer "+str(bestPrimer))
 		return(bestPrimer)
 
 def crisprEdit(seq,position):
