@@ -12,7 +12,7 @@
 <br>
 <br>
 <div>
-Identification of CAPS or dCAPS primers for known mutations.
+<center>Identification of CAPS or dCAPS primers for known mutations.</center>
 <br>
 <br>
 <form role="form" class="elegant-aero" method="POST" action="{{ url_for('results') }}">
@@ -38,15 +38,15 @@ Primer Concentration (milliMolar): <input type="text" name="primerConc" value="5
 
 <p>A tool for generating primers suitable for CAPS or dCAPS analyses of sites with insertions or deletions as well as SNPs.</p>
 
-<p>For this tool, currently you need to supply two sequences. Please supply 25-30 bases on each side of the indel or SNP location (not including the size of the inserted sequence). The sequence on both sides of the indel location should be exactly identical in both sequences.</p>
+<p>For this tool, currently you need to supply two sequences. Please supply 25-30 bases on each side of the indel or SNP location (not including the size of the inserted sequence). Both sequences should be identical except for the indel in question.</p>
 
-<p>"Mismatch Max" defines the maximum number of mismatches allowed to modify a site. Right now, this is only partially functional. The mismatch max is used to determine whether a single site can be modified to match a restriction site, but it is not yet compared to the total number of mismatches in the primer. That feature is planned, however.</p>
+<p>"Mismatch Max" defines the maximum number of mismatches allowed to modify a site.</p>
 
 
 
 
 <div>
-Identification of CAPS or dCAPS primers for screening purposes.
+<center>Identification of CAPS or dCAPS primers for screening purposes.</center>
 <form role="form" class="elegant-aero" method="POST" action="{{url_for('screening') }}">
 WT sequence: <input type="text" name="seq"><br>
 CRISPR target sequence: <input type="text" name="targetSeq"><br>

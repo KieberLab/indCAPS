@@ -919,6 +919,7 @@ def evaluateMutations(seq,targetSeq,enzymeInfo,enzymeName):
 				orientedMotif = list(orientedMotif)
 				currentSite = list(currentSite)
 				
+				# Change bases and reconstruct altered sequence
 				for each in range(0,lastSharedLeft-eachSite-1): 
 					if orientedMotif[each].lower() in ['g','c','t','a'] and orientedMotif[each].lower() != currentSite[each].lower():
 						currentSite[each] = orientedMotif[each] # FIXME: need to make it compatible with degenerate bases
@@ -1249,6 +1250,14 @@ def generatePrimer(seq,untenablePositions,desiredSuitable,lastShared,currentMoti
 	# Rule: Mismatches to canonical shared sequence less than hamming dist
 	lastPrimerBase = bestPrimer[0][-1].lower()
 	lastSeqBase = originalSeq[lastShared-1] # wait should this just be lastshared and not -1?
+	
+	# Check primer against overall hamming distance
+	bestPrimerStart = lastShared - len(bestPrimer)
+	hamTest = hamming(bestPrimer,originalSeq[bestPrimerStart:lastShared],False,True)
+	if hamTest > Settings.hammingThreshold:
+		return(None)
+	
+	# Check primer against mismatch criteria
 	if lastPrimerBase != lastSeqBase and Settings.allowMismatch == True:
 		# get the template base, which is the complement of the listed base
 		templateBase = revComp(lastSeqBase).lower()
