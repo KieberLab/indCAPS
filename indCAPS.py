@@ -790,7 +790,6 @@ def evaluateMutations(seq,targetSeq,enzymeInfo,enzymeName):
 	
 	# Scan targetSeq across seq to find matching position
 	# I assume there is only one cut site because a check should have performed for multiple match sites before it ever got this far. Also assuming there is exactly one because of same pre-checks.
-	print("Checking enzyme "+str(enzymeName))
 	# Initializing variables
 	currentMotif = enzymeInfo[0]
 	canCutLeft = False
@@ -963,10 +962,7 @@ def evaluateMutations(seq,targetSeq,enzymeInfo,enzymeName):
 						currentOut.append(" "*(13+lastSharedLeft-len(newPrimer[0]))+newPrimer[0])
 						output.append(currentOut)
 					else:
-						print("primer not generated")
 						rejectedPrimers += 1
-				else:
-					print("insufficient diagnostic primer")
 	if rejectedPrimers == (len(sitesLeft[1])+len(sitesRight[1])):
 		return(None)
 	else:
@@ -1261,24 +1257,14 @@ def generatePrimer(seq,untenablePositions,desiredSuitable,lastShared,currentMoti
 		# if template is G and primer 3' is T, ok.
 		# Allowable: T/T, T/C, T/G
 		if templateBase == 'g' and lastPrimerBase == 't':
-			print("returning primer "+str(bestPrimer))
 			return(bestPrimer)
 		elif templateBase == 't' and lastPrimerBase in ['t','c','g']:
-			print("returning primer "+str(bestPrimer))
 			return(bestPrimer)
 		else:
-			print("can't use primer because of bad 3' mismatch, rejecting.")
-			print(lastPrimerBase)
-			print(lastSeqBase)
 			return(None)
 	elif lastPrimerBase != lastSeqBase and Settings.allowMismatch == False:
-		print("can't use primer, rejecting. 3' mismatch")
-		print(lastPrimerBase)
-		print(lastSeqBase)
-		print(Settings.allowMismatch)
 		return(None)
 	else:
-		print("returning primer "+str(bestPrimer))
 		return(bestPrimer)
 
 def crisprEdit(seq,position):
