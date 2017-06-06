@@ -1,5 +1,15 @@
 #!/usr/bin/env python2
-from indCAPS import lastSharedBase, revComp
+import indCAPS
+
+def checkSingleSite(seqToTest,target):
+	seqToTest = seqToTest.lower()
+	target = target.lower()
+	matchNumber = 0
+	for eachPosition in range(0,len(seqToTest)-(len(target)-1)):
+		currentSubset = seqToTest[eachPosition:(eachPosition+len(target))]
+		if indCAPS.hamming(currentSubset,target,allComparisons=True,allResults=False) == 0:
+			matchNumber += 1
+	return(matchNumber)
 
 def checkBases(seqToTest):
 	if all([x in ['g','c','a','t'] for x in seqToTest.lower()]):
@@ -24,6 +34,17 @@ def nonBasePresent(seqToTest):
 		return(not any([x in ['g','c','a','t','r','y','s','w','k','m','b','d','h','v','n'] for x in seqToTest.lower()]))
 
 def evaluateInput(seq1,seq2=None):
+	"""
+	Checks input sequences for suitability, returns notes 
+	on possible problems.
+	
+	Seq1 is required, seq2 is optional. If seq2 is omitted, 
+	only seq1 will be tested and only for non-bases and extraneous whitespace. If seq2 is provided, the sequences are also
+	tested for the number of bases between ends and last 
+	shared bases and also amplicon length.
+	
+	Returns [seq1,seq2,notes] where notes is a list of warnings and notes on modifications
+	"""
 	# Returns [seq1,seq2,notes] where notes is a list of warnings and notes on modifications
 	notes = []
 	
@@ -46,11 +67,16 @@ def evaluateInput(seq1,seq2=None):
 		if notes2 is not None:
 			notes.append(notes2)
 
-		lastSharedLeft = lastSharedBase(seq1,seq2,'left')
-		lastSharedRight = lastSharedBase(seq1,seq2,'right')
-		if lastSharedLeft <= 25:
-			notes.append('Less than 25 identical shared bases on the left side of the inputted sequences. Primer design may fail or may not reach sufficient length or Tm.')
-		if lastSharedRight <= 25:
-			notes.append('Less than 25 identical shared bases on the right side of the inputted sequences. Primer design may fail or may not reach sufficient length or Tm.')
+		lastSharedLeft = indCAPS.lastSharedBase(seq1,seq2,'left')
+		lastSharedRight = indCAPS.lastSharedBase(seq1,seq2,'right')
+		if lastSharedLeft + Settings.ampliconLength > min(len(seq1),len(seq2)):
+			notes.append('Desired amplicon length will be larger than supplied sequence permits. Exact matches of restriction sites may exist outside borders of supplied sequences.')
+		if lastSharedRight + Settings.ampliconLength > min(len(seq1),len(seq2)):
+			notes.append('Desired amplicon length will be larger than supplied sequence permits. Exact matches of restriction sites may exist outside borders of supplied sequences.')
+		
+		if lastSharedLeft <= Settings.primerLength:
+			notes.append('Insufficient shared bases on the left side of the inputted sequences. Primer design may fail or may not reach sufficient length or Tm.')
+		if lastSharedRight <= Settings.primerLength:
+			notes.append('Insufficient shared bases on the right side of the inputted sequences. Primer design may fail or may not reach sufficient length or Tm.')
 
 	return([seq1,seq2,notes])

@@ -1,12 +1,9 @@
 import warnings
 from math import log
 from flask import Flask, render_template, request
-from indCAPS import hammingBool, hamming, revComp, baseNumbers, deltaG, deltaS
-from indCAPS import saltAdjusted, basicTemp, nearestNeighbor, estimateTM
-from indCAPS import lastSharedBase, scanUnshared, scanSequence, evaluateSites
-from indCAPS import generatePrimer, crisprEdit
+import indCAPS
+import helperFuncs
 from enzymeList import enzymes
-from helperFuncs import checkBases, removeWhitespace, evaluateInput, nonBasePresent
 import bleach
 import os
 
@@ -14,7 +11,6 @@ import os
 application = Flask(__name__)
 #app.config.from_object(os.environ['APP_SETTINGS'])
 application.jinja_env.trim_blocks = True
-		
 
 @application.route('/', methods=['GET','POST'])
 def index():
@@ -36,23 +32,38 @@ def results():
 			seq2 = bleach.clean(request.form['seq2'])
 			hamDist = int(bleach.clean(request.form['ham']))
 			TM = int(bleach.clean(request.form['tm']))
-		except:
+			allowMisMatch = bleach.clean(request.form['allowMM']) # This is now a checkbox, it will exist if it was checked and not exist if not
+			sodiumConc = float(bleach.clean(request.form['sodiumConc']))
+			primerConc = float(bleach.clean(request.form['primerConc']))
+			ampliconLength = int(bleach.clean(request.form['ampliconLength']))
+			primerType = bleach.clean(request.form['primerType'])
+			primerLength = int(bleach.clean(request.form['primerLength']))
+		except Exception as e:
 			errors.append("No sequences provided or Mismatch Match missing.")
+			errors.append(e)
 			return(render_template('results.html',allResults=[],notes=errors))
-		if seq1 and seq2 and hamDist:
-			if nonBasePresent(seq1) or nonBasePresent(seq2):
+		if seq1 and seq2:
+			if helperFuncs.nonBasePresent(seq1) or helperFuncs.nonBasePresent(seq2):
 				return(render_template('results.html',allResults=[],notes=["Non-bases included in input."]))
+			
+			# Define the settings object
+			Settings = indCAPS.SettingsObject(TM=TM,ampliconLength=ampliconLength,primerType=primerType,primerLength=primerLength,allowMismatch=allowMisMatch,hammingThreshold=hamDist,organism=None,sodiumConc=sodiumConc,primerConc=primerConc*10**(-9))
+			
+			indCAPS.Settings = Settings
+			helperFuncs.Settings = Settings
+			
 			# Evaluate the input
-			inputEvaluation = evaluateInput(seq1, seq2)
+			inputEvaluation = helperFuncs.evaluateInput(seq1, seq2)
 			seq1 = inputEvaluation[0]
 			seq2 = inputEvaluation[1]
 			notes = inputEvaluation[2]
+
 			
 			# Call function to evaluate enzymes
 			for eachEnzyme in enzymes:
 				enzymeName = eachEnzyme
 				enzymeValue = enzymes[eachEnzyme]
-				enzymeResults = evaluateSites(seq1,seq2,enzymeValue,hamDist,enzymeName,TM)
+				enzymeResults = indCAPS.evaluateSites(seq1,seq2,enzymeValue,enzymeName)
 				if enzymeResults is not None:
 					allResults.append(enzymeResults)
 			# Call function to generate primers
@@ -60,36 +71,73 @@ def results():
 			# But, to be more portable, I need to edit it so that primer returns and site returns are handled by separate functions
 			
 			# Assemble output using sites and primers
-			
 			# Display output
-			print(allResults)
-			print(notes)
+			if allResults == [] or allResults == None:
+				notes.append('No primer candidates. Please consider increasing the mismatch tolerance or altering your desired amplicon length.')
 			return(render_template('results.html',allResults=allResults,notes=notes))
 	return(render_template('index.html')) # if you tried to go to the results page on your own rather than being sent by the index, redirect to the index page
 	
 @application.route('/screening', methods=['GET','POST'])
 def screening():
+	# TODO: populate Settings object
+	# TODO: send user to index if they try to go directly to the results page
 	errors = []
-	seq = ""
-	hamDist = 0
-	TM = 58
-	cutoffPercent = 0
-	organism = "Athaliana"
+	allResults = []
+	notes = []
 	if request.method == "POST":
 		# Get stuff the user entered
 		try:
 			seq = bleach.clean(request.form['seq'])
+			targetSeq = bleach.clean(request.form['targetSeq'])
 			hamDist = int(bleach.clean(request.form['ham']))
-			cutoffPercent = int(bleach.clean(request.form['cutoffPercent']))
-			organism = int(bleach.clean(request.form['org']))
 			TM = int(bleach.clean(request.form['tm']))
-		except:
-			errors.append("No sequences provided or Mismatch Match missing.")
-			return(render_template('results.html',allResults=[],notes=errors))
+			allowMisMatch = bleach.clean(request.form['allowMM']) # This is now a checkbox, it will exist if it was checked and not exist if not
+			sodiumConc = float(bleach.clean(request.form['sodiumConc']))
+			primerConc = float(bleach.clean(request.form['primerConc']))
+			ampliconLength = int(bleach.clean(request.form['ampliconLength']))
+			primerType = bleach.clean(request.form['primerType'])
+			primerLength = int(bleach.clean(request.form['primerLength']))
+			organism = bleach.clean(request.form['organism'])
+			seqThreshold = float(bleach.clean(request.form['cutoffPercent']))
+		except Exception as e:
+			errors.append("Error in input form.")
+			errors.append(e)
+			return(render_template('results.html',allResults=None,notes=errors))
 		if seq and hamDist and TM:
-			mutationResults = None#evaluateMutations(seq,altSeqs,seqThreshold,enzymeDict,hammingThreshold,enzymeName,TM)
-			return(render_template('results.html',allResults=mutationResults))
-	return(render_template('index.html',allResults=[]))
+			# Make settings object
+			Settings = indCAPS.SettingsObject(TM=TM,ampliconLength=ampliconLength,primerType=primerType,primerLength=primerLength,allowMismatch=allowMisMatch,hammingThreshold=hamDist,organism=organism,sodiumConc=sodiumConc,primerConc=primerConc*10**(-9),seqThreshold=seqThreshold)
+			
+			# Populate modules with settings object
+			indCAPS.Settings = Settings
+			helperFuncs.Settings = Settings
+			
+			# Evaluate the input
+			inputEvaluation = helperFuncs.evaluateInput(seq)
+			seq1 = inputEvaluation[0]
+			seq2 = inputEvaluation[1]
+			notes = inputEvaluation[2]
+			siteMatches = helperFuncs.checkSingleSite(seq,targetSeq)
+			if siteMatches == 0:
+				# No matches present
+				notes.append('Target does not match any region in the sequence. Please provide a new target.')
+				return(render_template('screening.html',allResults=None,notes=notes))
+			elif siteMatches > 1:
+				# Too many matches present
+				notes.append('Target matches multiple locations in provided sequence. Primers cannot be designed.')
+				return(render_template('screening.html',allResults=None,notes=notes))
+				
+			# Call function to evaluate enzymes
+			for eachEnzyme in enzymes:
+				enzymeName = eachEnzyme
+				enzymeValue = enzymes[eachEnzyme]
+				mutationResults = indCAPS.evaluateMutations(seq,targetSeq,enzymeValue,enzymeName)
+				if mutationResults is not None:
+					allResults.append(mutationResults)
+			
+			if allResults == [] or allResults == None:
+				notes.append('No primer candidates. Please consider increasing the mismatch tolerance or altering your desired amplicon length.')
+			return(render_template('screening.html',allResults=allResults,notes=notes))
+	return(render_template('index.html')) # if you tried to go to the results page on your own rather than being sent by the index, redirect to the index page
 
 if __name__ == "__main__":
 	application.run()
