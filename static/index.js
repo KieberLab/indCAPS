@@ -21,7 +21,7 @@ $(document).ready(function () {
 		$content = $header.next();
 		$content.slideToggle(100, function() {
 			$header.text(function() {
-				return $content.is(":visible") ? "Design primers for CRISPR screening (collapse)" : "Design primers for CRSIPR screening";
+				return $content.is(":visible") ? "Design Screening Primers for Unknown CRISPR Editing (collapse)" : "Design Screening Primers for Unknown CRISPR Editing";
 			});
 		});
 	});
