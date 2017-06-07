@@ -8,32 +8,6 @@
 </head>
 <body>
 <center><big><p>indCAPS (indy-caps)</p></big></center>
-
-<br>
-<br>
-<div>
-<center>Identification of CAPS or dCAPS primers for known mutations.</center>
-<br>
-<br>
-<form role="form" class="elegant-aero" method="POST" action="{{ url_for('results') }}">
-First Sequence: <input type="text" name="seq1"><br>
-Second Sequence: <input type="text" name="seq2"><br>
-Mismatch Max: <input type="text" name="ham" value="2"><br>
-<input type="submit" value="Submit"><br>
-<a href="#" class="show">Advanced Options</a>
-<div class="expandedText" style="display:none">
-<a href="#" class="hide">Close</a><br>
-Amplicon Length (bp): <input type="text" name="ampliconLength" value="90"><br>
-Primer Type: TM <input type="radio" name="primerType" value="tm" checked> Length <input type="radio" name="primerType" value="length"><br>
-Primer Length (bp): <input type="text" name="primerLength" value="30"><br>
-Melting Temperature (C): <input type="text" name="tm" value="60"><br>
-Allow 3' G/T Mismatches: Yes <input type="radio" name="allowMM" value="yes" checked> No <input type="radio" name="allowMM" value="no"><br>
-Sodium Concentration (microMolar): <input type="text" name="sodiumConc" value="0.05"><br>
-Primer Concentration (milliMolar): <input type="text" name="primerConc" value="50"><br>
-</div>
-</form>
-
-</div>
 <br>
 
 <p>A tool for generating primers suitable for CAPS or dCAPS analyses of sites with insertions or deletions as well as SNPs.</p>
@@ -41,33 +15,63 @@ Primer Concentration (milliMolar): <input type="text" name="primerConc" value="5
 <p>For this tool, currently you need to supply two sequences. Please supply 25-30 bases on each side of the indel or SNP location (not including the size of the inserted sequence). Both sequences should be identical except for the indel in question.</p>
 
 <p>"Mismatch Max" defines the maximum number of mismatches allowed to modify a site.</p>
-
-
-
-
-<div>
-<center>Identification of CAPS or dCAPS primers for screening purposes.</center>
-<form role="form" class="elegant-aero" method="POST" action="{{url_for('screening') }}">
-WT sequence: <input type="text" name="seq"><br>
-CRISPR target sequence: <input type="text" name="targetSeq"><br>
-Mismatch Max: <input type="text" name="ham" value="1"><br>
-Organism: <input type="text" name="organism" value="generic"><br>
-Cutoff percent: <input type="text" name="cutoffPercent" value="10"><br>
-<input type="submit" value="Submit"><br>
-<a href="#" class="show">Advanced Options</a>
-<div class="expandedText" style="display:none">
-<a href="#" class="hide">Close</a><br>
-Amplicon Length (bp): <input type="text" name="ampliconLength" value="90"><br>
-Primer Type: TM <input type="radio" name="primerType" value="tm" checked> Length <input type="radio" name="primerType" value="length"><br>
-Primer Length (bp): <input type="text" name="primerLength" value="30"><br>
-Melting Temperature (C): <input type="text" name="tm" value="60"><br>
-Allow 3' G/T Mismatches: Yes <input type="radio" name="allowMM" value="yes" checked> No <input type="radio" name="allowMM" value="no"><br>Sodium Concentration (microMolar): <input type="text" name="sodiumConc" value="0.05"><br>
-Primer Concentration (milliMolar): <input type="text" name="primerConc" value="50"><br>
-</div>
-</form>
-</div>
 <br>
 <br>
+
+<div class="container">
+	<div class="header"><span>Design Primers for Known Alleles</span>
+	</div>
+	<div class="content">
+	<form role="form" class="elegant-aero" method="POST" action="{{ url_for('results') }}">
+	First Sequence: <input type="text" name="seq1"><br>
+	Second Sequence: <input type="text" name="seq2"><br>
+	Mismatch Max: <input type="text" name="ham" value="2"><br>
+	<input type="submit" value="Submit"><br>
+	<a href="#" class="show">Advanced Options</a>
+	<div class="expandedText" style="display:none">
+	<a href="#" class="hide">Close</a><br>
+	Amplicon Length (bp): <input type="text" name="ampliconLength" value="90"><br>
+	Primer Type: TM <input type="radio" name="primerType" value="tm" checked> Length <input type="radio" name="primerType" value="length"><br>
+	Primer Length (bp): <input type="text" name="primerLength" value="30"><br>
+	Melting Temperature (C): <input type="text" name="tm" value="60"><br>
+	Allow 3' G/T Mismatches: Yes <input type="radio" name="allowMM" value="yes" checked> No <input type="radio" name="allowMM" value="no"><br>
+	Sodium Concentration (microMolar): <input type="text" name="sodiumConc" value="0.05"><br>
+	Primer Concentration (milliMolar): <input type="text" name="primerConc" value="50"><br>
+	</div>
+	</form>
+	</div>
+</div>
+<div style="clear:both;"></div>
+<br>
+<br>
+<div class="container">
+	<div class="header2"><span>Design Screening Primers for Unknown CRISPR Editing</span>
+	</div>
+	<div class="content">
+	<form role="form" class="elegant-aero" method="POST" action="{{url_for('screening') }}">
+	WT sequence: <input type="text" name="seq"><br>
+	CRISPR target sequence: <input type="text" name="targetSeq"><br>
+	Mismatch Max: <input type="text" name="ham" value="1"><br>
+	Organism: <input type="text" name="organism" value="generic"><br>
+	Cutoff percent: <input type="text" name="cutoffPercent" value="10"><br>
+	<input type="submit" value="Submit"><br>
+	<a href="#" class="show">Advanced Options</a>
+	<div class="expandedText" style="display:none">
+	<a href="#" class="hide">Close</a><br>
+	Amplicon Length (bp): <input type="text" name="ampliconLength" value="90"><br>
+	Primer Type: TM <input type="radio" name="primerType" value="tm" checked> Length <input type="radio" name="primerType" value="length"><br>
+	Primer Length (bp): <input type="text" name="primerLength" value="30"><br>
+	Melting Temperature (C): <input type="text" name="tm" value="60"><br>
+	Allow 3' G/T Mismatches: Yes <input type="radio" name="allowMM" value="yes" checked> No <input type="radio" name="allowMM" value="no"><br>Sodium Concentration (microMolar): <input type="text" name="sodiumConc" value="0.05"><br>
+	Primer Concentration (milliMolar): <input type="text" name="primerConc" value="50"><br>
+	</div>
+	</form>
+	</div>
+</div>
+
+<br>
+<br>
+<div style="clear:both;"></div>
 Example output:
 <pre>
 

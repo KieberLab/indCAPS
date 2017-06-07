@@ -7,11 +7,38 @@ pre {
 form {
 	text-align:center;
 }
+
+.container {
+	margin: 0 auto;
+	text-align:center;
+    width:50%;
+    border:1px solid #d3d3d3;
+}
+.container div {
+    width:100%;
+}
+.container .header {
+    background-color:#d3d3d3;
+    padding: 0px;
+    cursor: pointer;
+    font-weight: bold;
+}
+.container .content {
+    display: none;
+    padding : 0px;
+}
+.container .header2 {
+    background-color:#d3d3d3;
+    padding: 0px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
 /* Elegant Aero from https://www.sanwebe.com/2013/10/css-html-form-styles#elegant-aero-css */
 .elegant-aero {
     margin-left:auto;
     margin-right:auto;
-
+	/*float:left;*/
     max-width: 500px;
     background: #D2E9FF;
     padding: 20px 20px 20px 20px;
