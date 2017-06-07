@@ -1252,8 +1252,8 @@ def generatePrimer(seq,untenablePositions,desiredSuitable,lastShared,currentMoti
 	lastSeqBase = originalSeq[lastShared-1] # wait should this just be lastshared and not -1?
 	
 	# Check primer against overall hamming distance
-	bestPrimerStart = lastShared - len(bestPrimer)
-	hamTest = hamming(bestPrimer,originalSeq[bestPrimerStart:lastShared],False,True)
+	bestPrimerStart = lastShared - len(bestPrimer[0])
+	hamTest = hamming(bestPrimer[0],originalSeq[bestPrimerStart:lastShared],False,True)
 	if hamTest > Settings.hammingThreshold:
 		return(None)
 	
