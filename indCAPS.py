@@ -948,12 +948,14 @@ def evaluateMutations(seq,targetSeq,enzymeInfo,enzymeName):
 					# Add the number of comparisons made
 					comparisonCount += setToUse[0]
 					
+					# setToUse[1] is the proportion of comparisons that are exact matches
 					# Add the number of possible cuts if any exist
 					if setToUse[2] == 0:
 						cutCount += setToUse[0] * setToUse[1]
 					
 				# Examine whether the proportion of viable cuts is above the threshold for this cut site
-				if (100*cutCount/comparisonCount) >= Settings.seqThreshold:
+				# if [proportion of all comparisons that also cut] [is less than 10%] : [generate primer]
+				if (100*cutCount/comparisonCount) <= Settings.seqThreshold:
 					# Attempt to generate a primer
 					newPrimer = generatePrimer(currentSeq,untenablePositions,eachSite,lastSharedLeft,currentMotif)
 					
