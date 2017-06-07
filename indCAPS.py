@@ -955,6 +955,10 @@ def evaluateMutations(seq,targetSeq,enzymeInfo,enzymeName):
 					
 				# Examine whether the proportion of viable cuts is above the threshold for this cut site
 				# if [proportion of all comparisons that also cut] [is less than 10%] : [generate primer]
+				# if [proportion of all comparisons that also cut] [is more than 10%] : [generate primer]
+				#print("==========================")
+				#print("successful cut percent is "+str(100*cutCount/comparisonCount))
+				#print("threshold is "+str(Settings.seqThreshold))
 				if (100*cutCount/comparisonCount) <= Settings.seqThreshold:
 					# Attempt to generate a primer
 					newPrimer = generatePrimer(currentSeq,untenablePositions,eachSite,lastSharedLeft,currentMotif)
