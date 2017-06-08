@@ -7,28 +7,23 @@
 <script type="text/javascript" src="{{ url_for('static', filename='index.js') }}"></script>
 </head>
 <body>
-<center><big><p>indCAPS (indy-caps)</p></big></center>
-<br>
 
+<div class="customtitle"><center><big><p>indCAPS (indy-caps)</p></big></center></div>
+
+<div class="bigbox">
 <p>A tool for generating primers suitable for CAPS or dCAPS analyses of sites with insertions or deletions as well as SNPs.</p>
 
-<p>For this tool, currently you need to supply two sequences. Please supply 25-30 bases on each side of the indel or SNP location (not including the size of the inserted sequence). Both sequences should be identical except for the indel in question.</p>
+<p>For the generation of dCAPS primers for known alleles, please supply at least 25-30 bases on each side of the indel or SNP location (not including the size of the inserted sequence). Both sequences should be identical except for the indel in question.</p>
 
-<p>"Mismatch Max" defines the maximum number of mismatches allowed to modify a site.</p>
-<br>
-<br>
+<p>For the generation of dCAPS primers for CRISPR/Cas9 screening purposes, please supply the wild-type sequence centered on the cut site with at least 25-30 bases on each side of the predicted cut site. Also include the target sequence in the 5'->3' orientation (such that the PAM site would appear to the left of the provided sequence). Fewer than 20 bases can be provided but it is assumed that the cut position is in the -3 position of the provided sequence.</p>
 
-<!--<center>Click either of the two buttons below to begin.</center>-->
-<!-- <div class="container"> -->
 <div>
-	<div class="header"><span><center>Design Primers for Known Alleles</center></span>
-	</div>
-	<div class="content">
 	<form role="form" class="elegant-aero" method="POST" action="{{ url_for('results') }}">
+	<h1>Design of dCAPS Primers for Known Alleles</h1>
 	First Sequence: <input type="text" name="seq1"><br>
 	Second Sequence: <input type="text" name="seq2"><br>
 	Mismatch Max: <input type="text" name="ham" value="2"><br>
-	<input type="submit" value="Submit"><br>
+	<input class="elegant-aero" type="submit" value="Submit"><br>
 	<a href="#" class="show">Advanced Options</a>
 	<div class="expandedText" style="display:none">
 	<a href="#" class="hide">Close</a><br>
@@ -36,28 +31,24 @@
 	Primer Type: TM <input type="radio" name="primerType" value="tm" checked> Length <input type="radio" name="primerType" value="length"><br>
 	Primer Length (bp): <input type="text" name="primerLength" value="30"><br>
 	Melting Temperature (C): <input type="text" name="tm" value="60"><br>
-	Allow 3' G/T Mismatches: Yes <input type="radio" name="allowMM" value="yes" checked> No <input type="radio" name="allowMM" value="no"><br>
+	Allow 3' G/T Mismatches: Yes <input class="elegant-aero" type="radio" name="allowMM" value="yes" checked> No <input type="radio" name="allowMM" value="no"><br>
 	Sodium Concentration (microMolar): <input type="text" name="sodiumConc" value="0.05"><br>
 	Primer Concentration (milliMolar): <input type="text" name="primerConc" value="50"><br>
 	</div>
 	</form>
-	</div>
 </div>
 <div style="clear:both;"></div>
 <br>
 <br>
-<!--<div class="container">-->
 <div>
-	<div class="header2"><span><center>Design Screening Primers for Unknown CRISPR Editing</center></span>
-	</div>
-	<div class="content">
 	<form role="form" class="elegant-aero" method="POST" action="{{url_for('screening') }}">
+	<h1>Design of dCAPS Screening Primers for CRISPR/Cas9 Editing Events</h1>
 	WT sequence: <input type="text" name="seq"><br>
 	CRISPR target sequence: <input type="text" name="targetSeq"><br>
 	Mismatch Max: <input type="text" name="ham" value="1"><br>
 	Organism: <input type="text" name="organism" value="generic"><br>
 	Cutoff percent: <input type="text" name="cutoffPercent" value="10"><br>
-	<input type="submit" value="Submit"><br>
+	<input class="elegant-aero" type="submit" value="Submit"><br>
 	<a href="#" class="show">Advanced Options</a>
 	<div class="expandedText" style="display:none">
 	<a href="#" class="hide">Close</a><br>
@@ -69,33 +60,29 @@
 	Primer Concentration (milliMolar): <input type="text" name="primerConc" value="50"><br>
 	</div>
 	</form>
-	</div>
 </div>
 
-<br>
-<br>
 <div style="clear:both;"></div>
 Example output:
+<br>
 <pre>
-
 ===============================
-Enzyme: DpnII
+Enzyme: ApoI
 Possible cut site found at position [27].
-Problem cut site found at position [16].
-Sequence 1: GCGGAgggcccCTCAAGATCCCGAGTgggTCTTATcccCAGTTTCTTGGCTCTGTTA
-Sequence 2: GCGGAgggcccCTCAAGATCCCGAGTgggcccCAGTTTCTTGGCTCTGTTA
-                                       GATC
-                            ....
-                   gcccCTCAACATCCCGAGTggA
-57.9976921037
+Problem cut site found at position [].
+Sequence 1: TGTGTGTGCAGGGAGAAGCCAAATGTGGATTTTGACAGGGTGGACTCGTATGTGCATCAG
+Sequence 2: TGTGTGTGCAGGGAGAAGCCAAATGTGGATTTGACAGGGTGGACTCGTATGTGCATCAG
+                                       RAATTY
+                 GTGCAGGGAGAAGCCAAATGTGGAaTT
+59.75881474086953
 ===============================
 </pre>
 <br>
 <p>The Enzyme name is listed. The possible cut site is the position, moving from the left side of the primer in a 0-based manner, where the proposed cut site is located. "Problem" sites are places on the left side of the indel where an exact match to the enzyme in question can be found. </p>
-
 <p>The proposed match is shown below the sequences in letters, and any problem sites are shown as "." characters.</p>
 <p>Next, the proposed primer is shown aligned with the sequences. Comparison of the primer with the sequences should show which bases are modified to break problem cut sites or allow new cut sites to be used.</p>
-<p>The melting temperature of the primer is shown last. Currently, all primers are calculated with a target of 58 degrees Celsius. Future versions will allow the user to specify the Tm.</p>
+<p>The melting temperature of the primer is shown last.</p>
+</div>
 </body>
 </html>
 
