@@ -10,6 +10,9 @@ form {
 .customtitle {
 	font: 20px Arial, Helvetica, sans-serif;
 }
+p {
+	text-indent:20px;
+}
 
 .bigbox {
 	width:90%;
@@ -62,6 +65,8 @@ form {
     display: block;
     background: #C0E1FF;
     border-bottom: 1px solid #B8DDFF;
+	font-weight: bold;
+	color:black;
     /*margin: -20px -20px 15px;*/
 }
 .elegant-aero h1>span {
