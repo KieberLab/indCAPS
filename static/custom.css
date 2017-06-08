@@ -13,6 +13,7 @@ form {
 
 .bigbox {
 	width:90%;
+	max-width:800px;
 	/*background: #55BA74;*/
 	margin-left:auto;
     margin-right:auto;
