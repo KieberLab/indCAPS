@@ -7,6 +7,18 @@ pre {
 form {
 	text-align:center;
 }
+.customtitle {
+	font: 20px Arial, Helvetica, sans-serif;
+}
+
+.bigbox {
+	width:90%;
+	/*background: #55BA74;*/
+	margin-left:auto;
+    margin-right:auto;
+	padding: 10px 10px 10px 10px;
+	font: 15px Arial, Helvetica, sans-serif;
+}
 
 .container {
 	margin: 0 auto;
@@ -39,19 +51,19 @@ form {
     margin-left:auto;
     margin-right:auto;
 	/*float:left;*/
-    max-width: 500px;
+    max-width: 700px;
     background: #D2E9FF;
-    padding: 20px 20px 20px 20px;
+    padding: 10px 10px 10px 10px;
     font: 12px Arial, Helvetica, sans-serif;
     color: #666;
 }
 .elegant-aero h1 {
-    font: 24px "Trebuchet MS", Arial, Helvetica, sans-serif;
+    font: 18px "Trebuchet MS", Arial, Helvetica, sans-serif;
     padding: 10px 10px 10px 20px;
     display: block;
     background: #C0E1FF;
     border-bottom: 1px solid #B8DDFF;
-    margin: -20px -20px 15px;
+    /*margin: -20px -20px 15px;*/
 }
 .elegant-aero h1>span {
     display: block;
@@ -78,7 +90,7 @@ form {
 .elegant-aero input[type="text"], .elegant-aero input[type="email"], .elegant-aero textarea, .elegant-aero select {
     color: #888;
     width: 70%;
-    padding: 0px 0px 0px 5px;
+    padding: 0px 5px 0px 5px;
     border: 1px solid #C5E2FF;
     background: #FBFBFB;
     outline: 0;
@@ -88,6 +100,11 @@ form {
     height: 30px;
     line-height:15px;
     margin: 2px 6px 16px 0px;
+}
+.elegant-aero input[type="radio"] {
+	color: #888;
+	border: 1px solid #C5E2FF;
+	background: #FBFBFB;
 }
 .elegant-aero textarea{
     height:100px;
@@ -105,7 +122,7 @@ form {
     width: 70%;
 }
 .elegant-aero .button{
-    padding: 10px 30px 10px 30px;
+    padding: 5px 7px 5px 7px;
     background: #66C1E4;
     border: none;
     color: #FFF;
