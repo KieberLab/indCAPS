@@ -412,10 +412,22 @@ def deltaS(seq):
 	return(dSout)
 
 def saltAdjusted(seq):
-	return(None)
+	"""
+	Calculates melting temperature for an oligonucleotide using a
+	salt-adjusted calculation reportedly accurate for long sequences
+	"""
+	bases = baseNumbers(seq)
+	temp = 81.5 + (41*((bases['g']+bases['c'])/(bases['a']+bases['c']+bases['g']+bases['t']))-(500/(bases['a']+bases['c']+bases['g']+bases['t']))+16.6*log(Settings.sodiumConc,10))
+	return(temp)
 
 def basicTemp(seq):
-	return(None)
+	"""
+	Calculates melting temperature for an oligonucleotide using a
+	basic calculation appropriate for very short sequence lengths.
+	"""
+	bases = baseNumbers(seq) # dict of 'g','c','a','t'
+	temp = (bases['a']+bases['t'])*2+(bases['g']+bases['t'])*4
+	return(temp)
 
 def nearestNeighbor(seq):
 	"""
