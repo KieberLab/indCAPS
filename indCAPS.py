@@ -160,6 +160,22 @@ def proportionalDistance(mutMotif,motif):
 		setOutput.append([comparisons,currentProp,currentHam,hamDistHigh])
 	return(setOutput)
 	
+def getDegenerateMatch(base):
+	base = base.lower()
+	possibleMatches = {
+				   'r':['a','g','n','x'],
+				   'y':['c','t','n','x'],
+				   's':['g','c','n','x'],
+				   'w':['a','t','n','x'],
+				   'k':['g','t','n','x'],
+				   'm':['a','c','n','x'],
+				   'b':['c','g','t','n','x'],
+				   'd':['a','g','t','n','x'],
+				   'h':['a','c','t','n','x'],
+				   'v':['a','c','g','n','x']}
+	replacementBase = possibleMatches[base][0]
+	return(replacementBase)
+
 def hamming(seq1,seq2,allResults=False,allComparisons=True):
 	"""
 	Calculates the hamming distance between two equal-length sequences.
@@ -412,10 +428,22 @@ def deltaS(seq):
 	return(dSout)
 
 def saltAdjusted(seq):
-	return(None)
+	"""
+	Calculates melting temperature for an oligonucleotide using a
+	salt-adjusted calculation reportedly accurate for long sequences
+	"""
+	bases = baseNumbers(seq)
+	temp = 81.5 + (41*((bases['g']+bases['c'])/(bases['a']+bases['c']+bases['g']+bases['t']))-(500/(bases['a']+bases['c']+bases['g']+bases['t']))+16.6*log(Settings.sodiumConc,10))
+	return(temp)
 
 def basicTemp(seq):
-	return(None)
+	"""
+	Calculates melting temperature for an oligonucleotide using a
+	basic calculation appropriate for very short sequence lengths.
+	"""
+	bases = baseNumbers(seq) # dict of 'g','c','a','t'
+	temp = (bases['a']+bases['t'])*2+(bases['g']+bases['t'])*4
+	return(temp)
 
 def nearestNeighbor(seq):
 	"""
@@ -922,7 +950,9 @@ def evaluateMutations(seq,targetSeq,enzymeInfo,enzymeName):
 				# Change bases and reconstruct altered sequence
 				for each in range(0,lastSharedLeft-eachSite-1): 
 					if orientedMotif[each].lower() in ['g','c','t','a'] and orientedMotif[each].lower() != currentSite[each].lower():
-						currentSite[each] = orientedMotif[each] # FIXME: need to make it compatible with degenerate bases
+						currentSite[each] = orientedMotif[each] 
+					elif orientedMotif[each].lower() in ['y','r','w','s','k','m','d','v','h','b'] and hamming(orientedMotif[each].lower(),currentSite[each].lower()) != [0]:
+						currentSite[each] = getDegenerateMatch(orientedMotif[each]) # TODO/FIXME: right now it includes the degenerate base in the primer, but should I have it randomly pick a compatible base?
 				orientedMotif = ''.join(orientedMotif)
 				currentSite = ''.join(currentSite)
 				seqLeft = currentSeq[:eachSite]
@@ -1225,8 +1255,10 @@ def generatePrimer(seq,untenablePositions,desiredSuitable,lastShared,currentMoti
 	orientedMotif = list(orientedMotif)
 	currentSite = list(currentSite)
 	for each in range(0,lastShared-desiredSuitable): # FIXME: think i have a fencepost error here, needs to be lastshared-desiredSuitable+1 I think.
-		if orientedMotif[each].lower() in ['g','c','t','a'] and orientedMotif[each].lower() != currentSite[each].lower():# FIXME: what about enzymes with degenerate bases?
+		if orientedMotif[each].lower() in ['g','c','t','a'] and orientedMotif[each].lower() != currentSite[each].lower():
 			currentSite[each] = orientedMotif[each]
+		elif orientedMotif[each].lower() in ['y','r','w','s','k','m','d','v','h','b'] and hamming(orientedMotif[each].lower(),currentSite[each].lower()) != [0]:
+			currentSite[each] = getDegenerateMatch(orientedMotif[each]) # TODO/FIXME: right now it includes the degenerate base in the primer, but should I have it randomly pick a compatible base?
 	orientedMotif = ''.join(orientedMotif)
 	currentSite = ''.join(currentSite)
 	seqLeft = seq[:desiredSuitable]
