@@ -139,5 +139,9 @@ def screening():
 			return(render_template('screening.html',allResults=allResults,notes=notes))
 	return(render_template('index.html')) # if you tried to go to the results page on your own rather than being sent by the index, redirect to the index page
 
+@application.route('/google61adb2a906ee8c51.html')
+def site_verification():
+	return(render_template("google61adb2a906ee8c51.html"))
+	
 if __name__ == '__main__':
 	application.run()
