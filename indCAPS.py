@@ -76,7 +76,7 @@ class SettingsObject:
 def proportionalDistance(mutMotif,motif):
 	"""
 	Computes a hamming distance between two sequences. Returns a list of 
-	two-item lists. Returned values are:
+	lists. Returned values are:
 	[number of comparisons, proportion of matching comparisons, lowHamDist, highHamDist]
 	
 	This is specifically intended to match a hypothetical, defined DNA sequence against
@@ -114,6 +114,7 @@ def proportionalDistance(mutMotif,motif):
 	setOutput = []
 	
 	# hmmm wait this isn't a useful thing. what i should be doing is probing for an exact match.
+	# TODO: Delete this comment.
 	
 	for eachNumber in range(0,len(sets)):
 		# Set up initial data
@@ -464,6 +465,8 @@ def estimateTM(seq,func='nearestNeighbor'):
 	Nearest Neighbor
 	Salt Adjusted
 	Basic
+	
+	For now, only nearest neighbor is supported.
 	"""
 	# Default function is 'nearestNeighbor'
 	# see http://biotools.nubic.northwestern.edu/OligoCalc.html
@@ -481,7 +484,7 @@ def estimateTM(seq,func='nearestNeighbor'):
 	# use salt adjusted
 	return(None)
 
-def lastSharedBase(seq1,seq2,direction):
+def lastSharedBase(seq1,seq2,direction='left'):
 	"""
 	Examines two sequences, determines the position of the last 
 	shared base between the two in the indicated direction.
@@ -500,12 +503,14 @@ def lastSharedBase(seq1,seq2,direction):
 	# Check that position string is correct
 	if direction.lower() not in ["right","left"]:
 		warnings.warn("Direction not specified correctly. Please use 'right' or 'left'. Using default of left.")
+		direction = 'left'
 	
 	# Reverse strings if necessary
 	if direction.lower() == "right":
 		seq1 = revComp(seq1)
 		seq2 = revComp(seq2)
 	
+	# Set variables for the loop
 	exitVar = 0
 	position = 0
 	
@@ -520,7 +525,8 @@ def lastSharedBase(seq1,seq2,direction):
 		# Exit if we've exhausted the whole string
 		if position > min(len(seq1),len(seq2)):
 			exitVar = 1
-			
+	
+	# Return the position in the original context - we revcomp'd, now we need to subtract from end
 	if direction is "right":
 		position = 0 - (position )
 
@@ -879,7 +885,7 @@ def evaluateMutations(seq,targetSeq,enzymeInfo,enzymeName):
 		# If there aren't any good sites to begin with, skip this loop
 		if eachSet == [[],[]]:
 			continue
-		elif eachSet[1] != []:
+		elif eachSet[1] != []: # if it doesn't cut in the wild-type, it will be []. if it cuts, it won't be [].
 			# Start typesetting some output
 			currentOut = []
 			currentOut.append("===============================")
@@ -973,7 +979,10 @@ def evaluateMutations(seq,targetSeq,enzymeInfo,enzymeName):
 					proportionTest = proportionalDistance(eachSequence[desiredSuitable[0]:desiredSuitable[0]+motifLen],currentMotif)
 					
 					# Get the set with the best match
+					# setToUse = [comparisons,currentProp,currentHam,hamDistHigh]
+					# There are three lists in this list, representing the three possible comparison orientations
 					setToUse = [comp for comp in proportionTest if comp[0] == min([comp2[0] for comp2 in proportionTest])][0]
+					print(setToUse)
 					
 					# Add the number of comparisons made
 					comparisonCount += setToUse[0]
@@ -983,12 +992,15 @@ def evaluateMutations(seq,targetSeq,enzymeInfo,enzymeName):
 					if setToUse[2] == 0:
 						cutCount += setToUse[0] * setToUse[1]
 					
+				# setToUse[1] is currentProp, the proportion of all possible comparisons which are exact matches
+				# currentProp * comparisons gives you the number of cuts you can expect from that comparison
+				
 				# Examine whether the proportion of viable cuts is above the threshold for this cut site
-				# if [proportion of all comparisons that also cut] [is less than 10%] : [generate primer]
-				# if [proportion of all comparisons that also cut] [is more than 10%] : [generate primer]
-				#print("==========================")
-				#print("successful cut percent is "+str(100*cutCount/comparisonCount))
-				#print("threshold is "+str(Settings.seqThreshold))
+
+				# YOU WANT IT NOT TO CUT, YOU WANT cutCount TO BE AS LOW AS POSSIBLE
+				# THE WHOLE POINT IS IT DOESN'T CUT THE MUTANT
+				# I'M YELLING BECUASE THIS IS LIKE THE THIRD TIME I'VE LOOKED AT THIS AND THOUGHT 'hey why isn't it >=' AND SPENT LIKE TWO HOURS AUDITING MY CODE AND IM SICK OF IT HAPPENING
+				
 				if (100*cutCount/comparisonCount) <= Settings.seqThreshold:
 					# Attempt to generate a primer
 					newPrimer = generatePrimer(currentSeq,untenablePositions,eachSite,lastSharedLeft,currentMotif)
