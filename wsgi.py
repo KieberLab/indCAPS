@@ -9,14 +9,12 @@ import bleach
 
 # Set up Flask stuff
 application = Flask(__name__)
-#app.config.from_object(os.environ['APP_SETTINGS'])
 application.jinja_env.trim_blocks = True
 
 @application.route('/', methods=['GET','POST'])
 def index():
 	return(render_template('index.html'))
 		
-# I need to change this so it recognizes WHICH button was pushed rather than just getting a button push
 @application.route('/results', methods=['GET','POST'])
 def results():
 	seq1 = False
@@ -26,7 +24,7 @@ def results():
 	allResults = []
 	notes = []
 	if request.method == "POST":
-		# Get stuff the user entered
+		# Try to get infomration the user entered
 		try:
 			seq1 = bleach.clean(request.form['seq1'])
 			seq2 = bleach.clean(request.form['seq2'])
@@ -38,10 +36,13 @@ def results():
 			ampliconLength = int(bleach.clean(request.form['ampliconLength']))
 			primerType = bleach.clean(request.form['primerType'])
 			primerLength = int(bleach.clean(request.form['primerLength']))
+		# Throw an error if it didn't work
 		except Exception as e:
 			errors.append("No sequences provided or Mismatch Match missing.")
 			errors.append(e)
 			return(render_template('results.html',allResults=[],notes=errors))
+		
+		# If the user gave two sequences, check them for quality and run main routine
 		if seq1 and seq2:
 			if helperFuncs.nonBasePresent(seq1) or helperFuncs.nonBasePresent(seq2):
 				return(render_template('results.html',allResults=[],notes=["Non-bases included in input."]))
@@ -49,6 +50,7 @@ def results():
 			# Define the settings object
 			Settings = indCAPS.SettingsObject(TM=TM,ampliconLength=ampliconLength,primerType=primerType,primerLength=primerLength,allowMismatch=allowMisMatch,hammingThreshold=hamDist,organism=None,sodiumConc=sodiumConc,primerConc=primerConc*10**(-9))
 			
+			# Pass the new Settings object down to the namespaces for the custom functions
 			indCAPS.Settings = Settings
 			helperFuncs.Settings = Settings
 			
@@ -58,7 +60,6 @@ def results():
 			seq2 = inputEvaluation[1]
 			notes = inputEvaluation[2]
 
-			
 			# Call function to evaluate enzymes
 			for eachEnzyme in enzymes:
 				enzymeName = eachEnzyme
@@ -68,10 +69,9 @@ def results():
 					allResults.append(enzymeResults)
 			# Call function to generate primers
 			# Right now, that information is returned by evaluateSites()
-			# But, to be more portable, I need to edit it so that primer returns and site returns are handled by separate functions
+			# To be more portable, future versions might make it so that site returns are separate from primer returns
 			
-			# Assemble output using sites and primers
-			# Display output
+			# Assemble output using sites and primers, then display
 			if allResults == [] or allResults == None:
 				notes.append('No primer candidates. Please consider increasing the mismatch tolerance or altering your desired amplicon length.')
 			return(render_template('results.html',allResults=allResults,notes=notes))
@@ -79,8 +79,6 @@ def results():
 	
 @application.route('/screening', methods=['GET','POST'])
 def screening():
-	# TODO: populate Settings object
-	# TODO: send user to index if they try to go directly to the results page
 	errors = []
 	allResults = []
 	notes = []
@@ -97,7 +95,7 @@ def screening():
 			ampliconLength = int(bleach.clean(request.form['ampliconLength']))
 			primerType = bleach.clean(request.form['primerType'])
 			primerLength = int(bleach.clean(request.form['primerLength']))
-			organism = bleach.clean(request.form['organism'])
+			organism = None #bleach.clean(request.form['organism'])
 			seqThreshold = float(bleach.clean(request.form['cutoffPercent']))
 		except Exception as e:
 			errors.append("Error in input form.")
@@ -123,7 +121,7 @@ def screening():
 				return(render_template('screening.html',allResults=None,notes=notes))
 			elif siteMatches > 1:
 				# Too many matches present
-				notes.append('Target matches multiple locations in provided sequence. Primers cannot be designed.')
+				notes.append('Target matches multiple locations in provided sequence. Primers cannot be designed. Please choose a different target sequence.')
 				return(render_template('screening.html',allResults=None,notes=notes))
 				
 			# Call function to evaluate enzymes
@@ -134,14 +132,20 @@ def screening():
 				if mutationResults is not None:
 					allResults.append(mutationResults)
 			
+			# Tell the user if the program failed
 			if allResults == [] or allResults == None:
 				notes.append('No primer candidates. Please consider increasing the mismatch tolerance or altering your desired amplicon length.')
+				
+			# Render the results, send the user to the results page
 			return(render_template('screening.html',allResults=allResults,notes=notes))
-	return(render_template('index.html')) # if you tried to go to the results page on your own rather than being sent by the index, redirect to the index page
+	# If you tried to go to the results page on your own rather than being sent by the index, redirect the user to the index page
+	return(render_template('index.html')) 
 
+# Gotta show up in Google
 @application.route('/google61adb2a906ee8c51.html')
 def site_verification():
 	return(render_template("google61adb2a906ee8c51.html"))
-	
+
+# Web server magic
 if __name__ == '__main__':
 	application.run()

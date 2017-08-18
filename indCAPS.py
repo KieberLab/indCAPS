@@ -1106,7 +1106,7 @@ def evaluateSites(seq1,seq2,enzymeInfo,enzymeName):
 			currentLastShared = lastSharedBase(currentSeq1,currentSeq2,'left')
 			for eachIndex in currentSet[1]:
 				newPrimer = generatePrimer(currentSeq1,currentSet[0],eachIndex,currentLastShared,currentMotif)
-				# TODO: check hamdist? or does generatePrimer do that
+
 				if newPrimer is not None:
 					lastPrimerBase = newPrimer[0][-1]
 					lastSequenceBase = currentSeq1[currentLastShared-1]
@@ -1140,7 +1140,6 @@ def putativePrimer(seq,lastShared):
 	Output
 	bestPrimer = string of valid DNA bases
 	"""
-
 	# type can be 'tm' or 'length'
 	seq = seq.lower()
 	
