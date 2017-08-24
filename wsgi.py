@@ -1,11 +1,11 @@
 #!/usr/bin/env python2
 import warnings
 from math import log
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request # 3 clause BSD
 import indCAPS
 import helperFuncs
 from enzymeList import enzymes
-import bleach
+import bleach # apache v2
 
 # Set up Flask stuff
 application = Flask(__name__)

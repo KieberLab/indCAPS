@@ -2,21 +2,14 @@
 """@package indCAPS
 Examine multiple strings representing DNA bases for cases where 
 diagnostic PCR primers can be constructed to distinguish the strings.
+
+Currently tailored for use as a web application, but can be adapted
+for standalone use.
 """
 # -*- coding: utf-8 -*-
 from math import log
 import itertools
 import warnings
-
-# Some old cruft from earlier versions but useful to have some sequences around for testing purposes.
-# Sample sequences from Leah
-#seq1 = "TGTGTGTGCAGGGAGAAGCCAAATGTGGATTTTGACAGGGTGGACTCGTATGTGCATCAG"
-#seq2 = "TGTGTGTGCAGGGAGAAGCCAAATGTGGATTTGACAGGGTGGACTCGTATGTGCATCAG"
-# other random sequences
-#seq1 = 'GCGGAgggcccCTCAAGATCCCGAGTgggTCTTATcccCAGTTTCTTGGCTCTGTTA'
-#seq2 = 'GCGGAgggcccCTCAAGATCCCGAGTgggcccCAGTTTCTTGGCTCTGTTA'
-#currentMotif = 'gggccc'
-#hamNum = 4
 
 ## Enzymes
 # Will not include nicking enzymes or intron-encoding enzymes or homing enzymes
@@ -29,12 +22,12 @@ class SettingsObject:
 	This object should be in the global scope and hold all the 
 	invariant information on things like parameters of primer design.
 	When calling functions from the indCAPS package, make sure the first
-	thing you do is set indCAPS.Settings = X, where X is the name of your 
-	SettingsObject() object.
+	thing you do is set indCAPS.Settings = X and helperFuncs.Settings = X, 
+	where X is the name of your SettingsObject() object.
 	
 	Nearly all functions in this package depend on this object existing.
 	
-	TM = numerical, desired melting temperature of primer
+	TM = float, desired melting temperature of primer in degrees C
 	ampliconLength = integer, length of dCAPS amplicon
 	primerType = string, choice of 'tm' or 'length'
 	primerLength = integer, length of primer to design
@@ -44,7 +37,6 @@ class SettingsObject:
 	sodiumConc = float, units milliMolar
 	primerConc = float, units nanoMolar
 	seqThreshold = float, range from 0-100, cutoff percent for CRISPR screening
-	
 	"""
 	def __init__(self,TM=55,ampliconLength=70,primerType='tm',primerLength=25,allowMismatch=False,hammingThreshold=1,organism=None,sodiumConc=0.05,primerConc=50*10**(-9),seqThreshold=0):
 		self.TM = TM
@@ -106,15 +98,14 @@ def proportionalDistance(mutMotif,motif):
 					   'n':['a','g','c','t','r','y','s','w','k','m','b','d','h','v','n','x'],
 					   'x':['a','g','c','t','r','y','s','w','k','m','b','d','h','v','n','x']}
 	
+	# Honestly I don't know if this is necessary but it doesn't hurt.
 	mutMotif = mutMotif.lower()
 	motif = motif.lower()
 	
+	# Arrange possible comparisons of sequence and motif
 	sets = [ [mutMotif,motif] , [revComp(mutMotif).lower(),motif] , [mutMotif, revComp(motif).lower()] ]
 	
 	setOutput = []
-	
-	# hmmm wait this isn't a useful thing. what i should be doing is probing for an exact match.
-	# TODO: Delete this comment.
 	
 	for eachNumber in range(0,len(sets)):
 		# Set up initial data
@@ -162,6 +153,11 @@ def proportionalDistance(mutMotif,motif):
 	return(setOutput)
 	
 def getDegenerateMatch(base):
+	"""
+	Given a degenerate base, returns all possible matches.
+	Possible return values - a, g, c, t, n, x
+	base = string, lowercase, degenerate base symbol
+	"""
 	base = base.lower()
 	possibleMatches = {
 				   'r':['a','g','n','x'],
@@ -174,6 +170,8 @@ def getDegenerateMatch(base):
 				   'd':['a','g','t','n','x'],
 				   'h':['a','c','t','n','x'],
 				   'v':['a','c','g','n','x']}
+	
+	# Return just the string, not the string in a list
 	replacementBase = possibleMatches[base][0]
 	return(replacementBase)
 
@@ -207,6 +205,7 @@ def hamming(seq1,seq2,allResults=False,allComparisons=True):
 	seq1 = seq1.lower()
 	seq2 = seq2.lower()
 	
+	# FIXME: it sends a program-killing error if I try to send a warning right now.
 	if len(seq1) != len(seq2):
 		warnings.warn("Comparing sequences of unequal length.")
 		
@@ -1365,6 +1364,16 @@ def crisprEdit(seq,position):
 
 
 # OLDER DESIGN NOTES - Might be some mistakes in here or abandoned ideas. Mostly keeping in case I need it later.
+
+# Some old cruft from earlier versions but useful to have some sequences around for testing purposes.
+# Sample sequences from Leah
+#seq1 = "TGTGTGTGCAGGGAGAAGCCAAATGTGGATTTTGACAGGGTGGACTCGTATGTGCATCAG"
+#seq2 = "TGTGTGTGCAGGGAGAAGCCAAATGTGGATTTGACAGGGTGGACTCGTATGTGCATCAG"
+# other random sequences
+#seq1 = 'GCGGAgggcccCTCAAGATCCCGAGTgggTCTTATcccCAGTTTCTTGGCTCTGTTA'
+#seq2 = 'GCGGAgggcccCTCAAGATCCCGAGTgggcccCAGTTTCTTGGCTCTGTTA'
+#currentMotif = 'gggccc'
+
 # overall region to test:
 # [lastShared - (motifLen-2) + iterator] to [lastShared + 1 + iterator]
 # iterator is [0 .. motifLen-2]
@@ -1373,7 +1382,6 @@ def crisprEdit(seq,position):
 # motifLen is the number of characters in the motif
 # lastShared is the index of the last shared character
 
-# At each iteration, check whether: hammingdistance in unshared is 0 in one sequence and not the other, and hamming distance in shared distance in both sequences is less than threshold
 
 # cases that work
 # extant exact match overlapping with unshared region that isn't present in any upstream or downstream shared region. easiest csae
@@ -1389,7 +1397,3 @@ def crisprEdit(seq,position):
 # CG	ATT
 # CG	CAT
 # the first C is a shared base, so it's naturally part of the primer, but the final G in the primer is actually in the unshared region, and the resulting motif does not overlap at all with the shared region.
-
-# mismatches! G/T mismatches are ok. G/A and G/G mismatches are not good! will not amplify!
-
-# so in order to account for indels i really can only butt up against them, i can't do what you do for SNPs which is put them right in the middle
