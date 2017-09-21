@@ -1,4 +1,3 @@
-#!/usr/bin/env python2
 import warnings
 from math import log
 from flask import Flask, render_template, request # 3 clause BSD
