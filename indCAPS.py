@@ -2,21 +2,14 @@
 """@package indCAPS
 Examine multiple strings representing DNA bases for cases where 
 diagnostic PCR primers can be constructed to distinguish the strings.
+
+Currently tailored for use as a web application, but can be adapted
+for standalone use.
 """
 # -*- coding: utf-8 -*-
 from math import log
 import itertools
 import warnings
-
-# Some old cruft from earlier versions but useful to have some sequences around for testing purposes.
-# Sample sequences from Leah
-#seq1 = "TGTGTGTGCAGGGAGAAGCCAAATGTGGATTTTGACAGGGTGGACTCGTATGTGCATCAG"
-#seq2 = "TGTGTGTGCAGGGAGAAGCCAAATGTGGATTTGACAGGGTGGACTCGTATGTGCATCAG"
-# other random sequences
-#seq1 = 'GCGGAgggcccCTCAAGATCCCGAGTgggTCTTATcccCAGTTTCTTGGCTCTGTTA'
-#seq2 = 'GCGGAgggcccCTCAAGATCCCGAGTgggcccCAGTTTCTTGGCTCTGTTA'
-#currentMotif = 'gggccc'
-#hamNum = 4
 
 ## Enzymes
 # Will not include nicking enzymes or intron-encoding enzymes or homing enzymes
@@ -29,12 +22,12 @@ class SettingsObject:
 	This object should be in the global scope and hold all the 
 	invariant information on things like parameters of primer design.
 	When calling functions from the indCAPS package, make sure the first
-	thing you do is set indCAPS.Settings = X, where X is the name of your 
-	SettingsObject() object.
+	thing you do is set indCAPS.Settings = X and helperFuncs.Settings = X, 
+	where X is the name of your SettingsObject() object.
 	
 	Nearly all functions in this package depend on this object existing.
 	
-	TM = numerical, desired melting temperature of primer
+	TM = float, desired melting temperature of primer in degrees C
 	ampliconLength = integer, length of dCAPS amplicon
 	primerType = string, choice of 'tm' or 'length'
 	primerLength = integer, length of primer to design
@@ -44,7 +37,6 @@ class SettingsObject:
 	sodiumConc = float, units milliMolar
 	primerConc = float, units nanoMolar
 	seqThreshold = float, range from 0-100, cutoff percent for CRISPR screening
-	
 	"""
 	def __init__(self,TM=55,ampliconLength=70,primerType='tm',primerLength=25,allowMismatch=False,hammingThreshold=1,organism=None,sodiumConc=0.05,primerConc=50*10**(-9),seqThreshold=0):
 		self.TM = TM
@@ -76,7 +68,7 @@ class SettingsObject:
 def proportionalDistance(mutMotif,motif):
 	"""
 	Computes a hamming distance between two sequences. Returns a list of 
-	two-item lists. Returned values are:
+	lists. Returned values are:
 	[number of comparisons, proportion of matching comparisons, lowHamDist, highHamDist]
 	
 	This is specifically intended to match a hypothetical, defined DNA sequence against
@@ -106,14 +98,14 @@ def proportionalDistance(mutMotif,motif):
 					   'n':['a','g','c','t','r','y','s','w','k','m','b','d','h','v','n','x'],
 					   'x':['a','g','c','t','r','y','s','w','k','m','b','d','h','v','n','x']}
 	
+	# Honestly I don't know if this is necessary but it doesn't hurt.
 	mutMotif = mutMotif.lower()
 	motif = motif.lower()
 	
+	# Arrange possible comparisons of sequence and motif
 	sets = [ [mutMotif,motif] , [revComp(mutMotif).lower(),motif] , [mutMotif, revComp(motif).lower()] ]
 	
 	setOutput = []
-	
-	# hmmm wait this isn't a useful thing. what i should be doing is probing for an exact match.
 	
 	for eachNumber in range(0,len(sets)):
 		# Set up initial data
@@ -161,6 +153,11 @@ def proportionalDistance(mutMotif,motif):
 	return(setOutput)
 	
 def getDegenerateMatch(base):
+	"""
+	Given a degenerate base, returns all possible matches.
+	Possible return values - a, g, c, t, n, x
+	base = string, lowercase, degenerate base symbol
+	"""
 	base = base.lower()
 	possibleMatches = {
 				   'r':['a','g','n','x'],
@@ -173,6 +170,8 @@ def getDegenerateMatch(base):
 				   'd':['a','g','t','n','x'],
 				   'h':['a','c','t','n','x'],
 				   'v':['a','c','g','n','x']}
+	
+	# Return just the string, not the string in a list
 	replacementBase = possibleMatches[base][0]
 	return(replacementBase)
 
@@ -206,6 +205,7 @@ def hamming(seq1,seq2,allResults=False,allComparisons=True):
 	seq1 = seq1.lower()
 	seq2 = seq2.lower()
 	
+	# FIXME: it sends a program-killing error if I try to send a warning right now.
 	if len(seq1) != len(seq2):
 		warnings.warn("Comparing sequences of unequal length.")
 		
@@ -464,6 +464,8 @@ def estimateTM(seq,func='nearestNeighbor'):
 	Nearest Neighbor
 	Salt Adjusted
 	Basic
+	
+	For now, only nearest neighbor is supported.
 	"""
 	# Default function is 'nearestNeighbor'
 	# see http://biotools.nubic.northwestern.edu/OligoCalc.html
@@ -481,7 +483,7 @@ def estimateTM(seq,func='nearestNeighbor'):
 	# use salt adjusted
 	return(None)
 
-def lastSharedBase(seq1,seq2,direction):
+def lastSharedBase(seq1,seq2,direction='left'):
 	"""
 	Examines two sequences, determines the position of the last 
 	shared base between the two in the indicated direction.
@@ -500,12 +502,14 @@ def lastSharedBase(seq1,seq2,direction):
 	# Check that position string is correct
 	if direction.lower() not in ["right","left"]:
 		warnings.warn("Direction not specified correctly. Please use 'right' or 'left'. Using default of left.")
+		direction = 'left'
 	
 	# Reverse strings if necessary
 	if direction.lower() == "right":
 		seq1 = revComp(seq1)
 		seq2 = revComp(seq2)
 	
+	# Set variables for the loop
 	exitVar = 0
 	position = 0
 	
@@ -520,7 +524,8 @@ def lastSharedBase(seq1,seq2,direction):
 		# Exit if we've exhausted the whole string
 		if position > min(len(seq1),len(seq2)):
 			exitVar = 1
-			
+	
+	# Return the position in the original context - we revcomp'd, now we need to subtract from end
 	if direction is "right":
 		position = 0 - (position )
 
@@ -879,7 +884,7 @@ def evaluateMutations(seq,targetSeq,enzymeInfo,enzymeName):
 		# If there aren't any good sites to begin with, skip this loop
 		if eachSet == [[],[]]:
 			continue
-		elif eachSet[1] != []:
+		elif eachSet[1] != []: # if it doesn't cut in the wild-type, it will be []. if it cuts, it won't be [].
 			# Start typesetting some output
 			currentOut = []
 			currentOut.append("===============================")
@@ -973,7 +978,10 @@ def evaluateMutations(seq,targetSeq,enzymeInfo,enzymeName):
 					proportionTest = proportionalDistance(eachSequence[desiredSuitable[0]:desiredSuitable[0]+motifLen],currentMotif)
 					
 					# Get the set with the best match
+					# setToUse = [comparisons,currentProp,currentHam,hamDistHigh]
+					# There are three lists in this list, representing the three possible comparison orientations
 					setToUse = [comp for comp in proportionTest if comp[0] == min([comp2[0] for comp2 in proportionTest])][0]
+					print(setToUse)
 					
 					# Add the number of comparisons made
 					comparisonCount += setToUse[0]
@@ -983,12 +991,15 @@ def evaluateMutations(seq,targetSeq,enzymeInfo,enzymeName):
 					if setToUse[2] == 0:
 						cutCount += setToUse[0] * setToUse[1]
 					
+				# setToUse[1] is currentProp, the proportion of all possible comparisons which are exact matches
+				# currentProp * comparisons gives you the number of cuts you can expect from that comparison
+				
 				# Examine whether the proportion of viable cuts is above the threshold for this cut site
-				# if [proportion of all comparisons that also cut] [is less than 10%] : [generate primer]
-				# if [proportion of all comparisons that also cut] [is more than 10%] : [generate primer]
-				#print("==========================")
-				#print("successful cut percent is "+str(100*cutCount/comparisonCount))
-				#print("threshold is "+str(Settings.seqThreshold))
+
+				# YOU WANT IT NOT TO CUT, YOU WANT cutCount TO BE AS LOW AS POSSIBLE
+				# THE WHOLE POINT IS IT DOESN'T CUT THE MUTANT
+				# I'M YELLING BECUASE THIS IS LIKE THE THIRD TIME I'VE LOOKED AT THIS AND THOUGHT 'hey why isn't it >=' AND SPENT LIKE TWO HOURS AUDITING MY CODE AND IM SICK OF IT HAPPENING
+				
 				if (100*cutCount/comparisonCount) <= Settings.seqThreshold:
 					# Attempt to generate a primer
 					newPrimer = generatePrimer(currentSeq,untenablePositions,eachSite,lastSharedLeft,currentMotif)
@@ -1094,7 +1105,7 @@ def evaluateSites(seq1,seq2,enzymeInfo,enzymeName):
 			currentLastShared = lastSharedBase(currentSeq1,currentSeq2,'left')
 			for eachIndex in currentSet[1]:
 				newPrimer = generatePrimer(currentSeq1,currentSet[0],eachIndex,currentLastShared,currentMotif)
-				# TODO: check hamdist? or does generatePrimer do that
+
 				if newPrimer is not None:
 					lastPrimerBase = newPrimer[0][-1]
 					lastSequenceBase = currentSeq1[currentLastShared-1]
@@ -1128,7 +1139,6 @@ def putativePrimer(seq,lastShared):
 	Output
 	bestPrimer = string of valid DNA bases
 	"""
-
 	# type can be 'tm' or 'length'
 	seq = seq.lower()
 	
@@ -1354,6 +1364,16 @@ def crisprEdit(seq,position):
 
 
 # OLDER DESIGN NOTES - Might be some mistakes in here or abandoned ideas. Mostly keeping in case I need it later.
+
+# Some old cruft from earlier versions but useful to have some sequences around for testing purposes.
+# Sample sequences from Leah
+#seq1 = "TGTGTGTGCAGGGAGAAGCCAAATGTGGATTTTGACAGGGTGGACTCGTATGTGCATCAG"
+#seq2 = "TGTGTGTGCAGGGAGAAGCCAAATGTGGATTTGACAGGGTGGACTCGTATGTGCATCAG"
+# other random sequences
+#seq1 = 'GCGGAgggcccCTCAAGATCCCGAGTgggTCTTATcccCAGTTTCTTGGCTCTGTTA'
+#seq2 = 'GCGGAgggcccCTCAAGATCCCGAGTgggcccCAGTTTCTTGGCTCTGTTA'
+#currentMotif = 'gggccc'
+
 # overall region to test:
 # [lastShared - (motifLen-2) + iterator] to [lastShared + 1 + iterator]
 # iterator is [0 .. motifLen-2]
@@ -1362,7 +1382,6 @@ def crisprEdit(seq,position):
 # motifLen is the number of characters in the motif
 # lastShared is the index of the last shared character
 
-# At each iteration, check whether: hammingdistance in unshared is 0 in one sequence and not the other, and hamming distance in shared distance in both sequences is less than threshold
 
 # cases that work
 # extant exact match overlapping with unshared region that isn't present in any upstream or downstream shared region. easiest csae
@@ -1378,7 +1397,3 @@ def crisprEdit(seq,position):
 # CG	ATT
 # CG	CAT
 # the first C is a shared base, so it's naturally part of the primer, but the final G in the primer is actually in the unshared region, and the resulting motif does not overlap at all with the shared region.
-
-# mismatches! G/T mismatches are ok. G/A and G/G mismatches are not good! will not amplify!
-
-# so in order to account for indels i really can only butt up against them, i can't do what you do for SNPs which is put them right in the middle
