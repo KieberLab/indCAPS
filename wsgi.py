@@ -145,9 +145,6 @@ def screening():
 def site_verification():
 	return(render_template("google61adb2a906ee8c51.html"))
 
-<<<<<<< HEAD
-=======
 # Web server magic
->>>>>>> develop
 if __name__ == '__main__':
 	application.run()
