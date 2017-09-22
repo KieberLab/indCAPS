@@ -1107,10 +1107,34 @@ def evaluateSites(seq1,seq2,enzymeInfo,enzymeName):
 				newPrimer = generatePrimer(currentSeq1,currentSet[0],eachIndex,currentLastShared,currentMotif)
 
 				if newPrimer is not None:
-					lastPrimerBase = newPrimer[0][-1]
+					lastPrimerBase = newPrimer[0][-1] # FIXME: I don'tt think this and hte next line are ever used???
 					lastSequenceBase = currentSeq1[currentLastShared-1]
 					currentOut.append(" "*(12+currentLastShared-len(newPrimer[0]))+newPrimer[0])
-					currentOut.append(estimateTM(newPrimer[0]))
+					
+					# Find out which of seq1, seq2 will be cut
+					# Get amplified sequence
+					amplifiedSeq1 = newPrimer[0]+currentSeq1[(currentLastShared):(currentLastShared+len(currentMotif))]
+					amplifiedSeq2 = newPrimer[0]+currentSeq2[(currentLastShared):(currentLastShared+len(currentMotif))]
+					amp1Cut = False
+					amp2Cut = False
+					for each in range(0,len(amplifiedSeq1)-motifLen):
+						ampSub = amplifiedSeq1[each:(each+motifLen)]
+						ampHam = hamming(currentMotif,ampSub,allResults=True)
+						if any([x == 0 for x in ampHam]):
+							amp1Cut = True
+					if amp1Cut == False:
+						for each in range(0,len(amplifiedSeq2)-motifLen):
+							ampSub = amplifiedSeq2[each:(each+motifLen)]
+							ampHam = hamming(currentMotif,ampSub,allResults=True)
+							if any([x == 0 for x in ampHam]):
+								amp2Cut = True
+					cutStrand = "neither sequence"
+					if amp1Cut == True:
+						cutStrand = "Sequence 1"
+					elif amp2Cut == True:
+						cutStrand = "Sequence 2"
+					
+					currentOut.append("Assay for above primer cuts "+cutStrand+". The primer has Tm "+str(estimateTM(newPrimer[0]))+" degrees C.")
 				else:
 					currentRejects += 1
 					continue
