@@ -981,7 +981,7 @@ def evaluateMutations(seq,targetSeq,enzymeInfo,enzymeName):
 					# setToUse = [comparisons,currentProp,currentHam,hamDistHigh]
 					# There are three lists in this list, representing the three possible comparison orientations
 					setToUse = [comp for comp in proportionTest if comp[0] == min([comp2[0] for comp2 in proportionTest])][0]
-					print(setToUse)
+					#print(setToUse)
 					
 					# Add the number of comparisons made
 					comparisonCount += setToUse[0]
