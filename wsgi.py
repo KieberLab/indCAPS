@@ -140,6 +140,47 @@ def screening():
 	# If you tried to go to the results page on your own rather than being sent by the index, redirect the user to the index page
 	return(render_template('index.html')) 
 
+# Isogenic screening
+@application.route('/isogenic.html')
+def isogenic():
+	errors = []
+	allResults = []
+	notes = []
+	if request.method == "POST":
+		# Get stuff the user entered
+		try:
+			seq1 = bleach.clean(request.form['seq'])
+			seq2 = bleach.clean(request.form['mut'])
+			targetSeq = bleach.clean(request.form['targetSeq'])
+			hamDist = int(bleach.clean(request.form['ham']))
+			TM = int(bleach.clean(request.form['tm']))
+			allowMisMatch = bleach.clean(request.form['allowMM']) # This is now a checkbox, it will exist if it was checked and not exist if not
+			sodiumConc = float(bleach.clean(request.form['sodiumConc']))
+			primerConc = float(bleach.clean(request.form['primerConc']))
+			ampliconLength = int(bleach.clean(request.form['ampliconLength']))
+			primerType = bleach.clean(request.form['primerType'])
+			primerLength = int(bleach.clean(request.form['primerLength']))
+			organism = None #bleach.clean(request.form['organism'])
+			seqThreshold = float(bleach.clean(request.form['cutoffPercent']))
+		except Exception as e:
+			errors.append("Error in input form.")
+			errors.append(e)
+			return(render_template('isogenic.html',allResults=None,notes=errors))
+		if seq1 and seq2 and targetSeq:
+			x = 1
+			# Make settings object
+			# Populate modules with settings object
+			# Evaluate the input
+			# Call function to evaluate enzymes
+			
+			# Tell the user if the program failed
+			if allResults == [] or allResults == None:
+				notes.append('No primer candidates. Please consider increasing the mismatch tolerance or altering your desired amplicon length.')
+			# Render the results, send the user to the results page
+			return(render_template('isogenic.html',allResults=allResults,notes=notes))
+
+	return(render_template('index.html')
+
 # Gotta show up in Google
 @application.route('/google61adb2a906ee8c51.html')
 def site_verification():

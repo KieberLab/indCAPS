@@ -67,10 +67,10 @@
 <div style="clear:both;"></div>
 <form role="form" class="elegant-aero" method="POST" action="{{ url_for('isogenic') }}">
 	<h1>Design of dCAPS Screening Primers for Isogenic Mutagenic Events</h1>
-	WT Sequence:
-	Mutant Sequence:
-	CRISPR Target Sequence:
-	Mismatch Max
+	WT Sequence: <input type="text" name="wt"><br>
+	Mutant Sequence: <input type="text" name="mut"><br>
+	CRISPR Target Sequence:  <input type="text" name="crispr"><br>
+	Mismatch Max: <input type="text" name="ham" value="1"><br>
 	<input class="elegant-aero" type="submit" value="Submit"><br>
 	<a href="#" class="show">Advanced Options</a>
 	<div class="expandedText" style="display:none">
