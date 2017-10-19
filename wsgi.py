@@ -111,9 +111,9 @@ def screening():
 			# Evaluate the input
 			inputEvaluation = helperFuncs.evaluateInput(seq)
 			seq1 = inputEvaluation[0]
-			seq2 = inputEvaluation[1]
+			seq2 = inputEvaluation[1] # seq2 is not used! I dont need this here!
 			notes = inputEvaluation[2]
-			siteMatches = helperFuncs.checkSingleSite(seq,targetSeq)
+			siteMatches = helperFuncs.checkSingleSite(seq1,targetSeq)
 			if siteMatches == 0:
 				# No matches present
 				notes.append('Target does not match any region in the sequence. Please provide a new target.')
@@ -127,7 +127,7 @@ def screening():
 			for eachEnzyme in enzymes:
 				enzymeName = eachEnzyme
 				enzymeValue = enzymes[eachEnzyme]
-				mutationResults = indCAPS.evaluateMutations(seq,targetSeq,enzymeValue,enzymeName)
+				mutationResults = indCAPS.evaluateMutations(seq1,targetSeq,enzymeValue,enzymeName)
 				if mutationResults is not None:
 					allResults.append(mutationResults)
 			
