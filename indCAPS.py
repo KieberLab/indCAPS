@@ -1033,14 +1033,7 @@ def evaluateSites(seq1,seq2,enzymeInfo,enzymeName):
 	Output
 	output = list of strings to be typeset by the web page, 
 		listing results of screening for diagnostic primers
-	"""
-	# This calls scanSequence(), which returns a two-element list of form:
-	# [untenable positions, suitable positions]
-	# Untenable positions are positions in the upstream shared region where there is an exact match
-	# The primer will need to edit these positions in order to work.
-	# Suitable positions are positions where there is either an exact match for a motif or a match below the threshold
-	# Suitable positions mark places that are diagnostic for one sequence or the other
-	
+	"""	
 	currentMotif = enzymeInfo[0]
 	# Search from Left
 	sitesLeft = scanSequence(seq1,seq2,currentMotif,'left')
@@ -1196,6 +1189,113 @@ def putativePrimer(seq,lastShared):
 		bestPrimer = [primerList[x] for x in positionList if filterList[x] == min(filterList)]
 		return(bestPrimer)
 
+def evaluateIsogenic(wtSeq,mutSeq,targetSeq,enzymeInfo,enzymeName):
+	"""
+	Top-level function generating primer for identifying an
+	isogenic mutation in a CRISPR mutagenesis experiment.
+	
+	Input
+	wtSeq = 
+	mutSeq = 
+	targetSeq = 
+	enzymeInfo = 
+	enzymeName = 
+	
+	Output
+	"""
+	currentMotif = enzymeInfo[0]
+	
+	directions = ["left","right"]
+	currentOutput = []
+	output = []
+	motifLen = len(currentMotif)
+	
+	# Check wtSeq to see where the cut site is in the given sequence
+	for eachPosition in range(0,len(seq)-(len(targetSeq)-1)):
+		currentSubset = seq[eachPosition:(eachPosition+len(targetSeq))]
+		comparisons = hamming(currentSubset,targetSeq,True,True)
+		if 0 in comparisons:
+			targetStart = eachPosition
+			if comparisons[1] == 0 or comparisons[2] == 0:
+				targetSeq = revComp(targetSeq)
+			break
+	
+	# Identify cut site
+	# Hard assumption that the cut site is at the -3 position from the 3' end of the provided 5'->3' target sequence
+	
+	if comparisons[0] == 0:
+		cutPosition = eachPosition + len(targetSeq) - 3
+	elif comparisons[1] == 0 or comparisons[2] == 0:
+		cutPosition = eachPosition + 3
+
+	# Find last shared base on each side of putative editing
+	lastSharedLeft = len(seq)
+	lastSharedRight = lastSharedLeft
+	tempEditedSeqs = crisprEdit(seq,cutPosition)
+	if len(tempEditedSeqs) > 1:
+		for eachPair in itertools.permutations(tempEditedSeqs,2):
+			tempLastSharedLeft = lastSharedBase(eachPair[0],eachPair[1],'left')
+			tempLastSharedRight = lastSharedBase(eachPair[0],eachPair[1],'right')
+			if tempLastSharedLeft < lastSharedLeft:
+				lastSharedLeft = tempLastSharedLeft
+			if tempLastSharedRight > lastSharedRight:
+				lastSharedRight = tempLastSharedRight
+	else:
+		lastSharedLeft = lastSharedBase(tempEditedSeqs[0],seq,'left') # should be positive
+		lastSharedRight = lastSharedBase(tempEditedSeqs[0],seq,'right') # should be negative
+	
+	# Check sites left and right to see if this enzyme cuts in the mutant
+	
+	# Iterate from left and right
+	for eachNum in [0,1]:
+		# Set up some initial variables
+		
+		# If there aren't good sites, skip this loop
+		if eachSet == [[],[]]:
+			continue
+		
+			# If any values are negative, reverse sequences and indices
+			
+			# Typeset information on cut sites
+			
+			# Typeset mutant sequence and the target site
+			
+			# Get proper enzyme direction and typeset the enzyme
+			# This accounts for cases of non-palindromic enzymes
+			
+			# Indicate any exact cut sites in the shared region
+			
+			# Multiple putative sites may exists, so check at each one
+				
+				# Set up a counter for how many editing events cut
+				
+				# Edit sequence so that the primer works
+				
+				# Change bases and reconstruct altered sequence
+				
+				# Simulate CRISPR edits
+				
+				# Set up variables to count cuts and tests
+				
+				# See if the enzyme cuts the edited sites
+					
+					# Find proportional distance between edited and motif sequences
+					
+					# Get the set with the best match
+					
+					# Add the number of comparisons made
+					
+					# Add the number of possible cuts if any exist
+				
+				# Examine whether the proportion of cuts is above the threshold for the site
+				
+					# Attempt to generate a primer
+					
+					# Typeset the primer if it worked
+	
+	
+	return(None)
+		
 def generatePrimer(seq,untenablePositions,desiredSuitable,lastShared,currentMotif):
 	"""
 	Generates primer for a given sequence and checks 
