@@ -62,15 +62,17 @@
 	</div>
 	</form>
 </div>
+<div style="clear:both;"></div>
+<br>
+<br>
 
 <div>
-<div style="clear:both;"></div>
 <form role="form" class="elegant-aero" method="POST" action="{{ url_for('isogenic') }}">
 	<h1>Design of dCAPS Screening Primers for Isogenic Mutagenic Events</h1>
-	WT Sequence: <input type="text" name="wt"><br>
-	Mutant Sequence: <input type="text" name="mut"><br>
+	WT Sequence: <input type="text" name="wtSeq"><br>
+	Mutant Sequence: <input type="text" name="mutSeq"><br>
 	CRISPR Target Sequence:  <input type="text" name="targetSeq"><br>
-	Mismatch Max: <input type="text" name="ham" value="1"><br>
+	Mismatch Max: <input type="text" value="1" name="ham"><br>
 	<input class="elegant-aero" type="submit" value="Submit"><br>
 	<a href="#" class="show">Advanced Options</a>
 	<div class="expandedText" style="display:none">
@@ -79,7 +81,8 @@
 	Primer Type: TM <input type="radio" name="primerType" value="tm" checked> Length <input type="radio" name="primerType" value="length"><br>
 	Primer Length (bp): <input type="text" name="primerLength" value="30"><br>
 	Melting Temperature (C): <input type="text" name="tm" value="60"><br>
-	Allow 3' G/T Mismatches: Yes <input type="radio" name="allowMM" value="yes"> No <input type="radio" name="allowMM" value="no" checked><br>Sodium Concentration (microMolar): <input type="text" name="sodiumConc" value="0.05"><br>
+	Allow 3' G/T Mismatches: Yes <input type="radio" name="allowMM" value="yes"> No <input type="radio" name="allowMM" value="no" checked><br>
+	Sodium Concentration (microMolar): <input type="text" name="sodiumConc" value="0.05"><br>
 	Primer Concentration (milliMolar): <input type="text" name="primerConc" value="50"><br>
 	</div>
 </form>

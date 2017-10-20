@@ -1194,6 +1194,10 @@ def evaluateIsogenic(wtSeq,mutSeq,targetSeq,enzymeInfo,enzymeName):
 	Top-level function generating primer for identifying an
 	isogenic mutation in a CRISPR mutagenesis experiment.
 	
+	This tool will find a primer that cuts only the desired
+	mutant sequence. The wild-type and undesired mutant
+	sequences will not be cut by the restriction digest.
+	
 	Input
 	wtSeq = 
 	mutSeq = 
@@ -1203,16 +1207,18 @@ def evaluateIsogenic(wtSeq,mutSeq,targetSeq,enzymeInfo,enzymeName):
 	
 	Output
 	"""
-	currentMotif = enzymeInfo[0]
 	
+	# Set up some variables
+	currentMotif = enzymeInfo[0]
 	directions = ["left","right"]
 	currentOutput = []
 	output = []
 	motifLen = len(currentMotif)
+	targetStart = None
 	
 	# Check wtSeq to see where the cut site is in the given sequence
-	for eachPosition in range(0,len(seq)-(len(targetSeq)-1)):
-		currentSubset = seq[eachPosition:(eachPosition+len(targetSeq))]
+	for eachPosition in range(0,len(wtSeq)-(len(targetSeq)-1)):
+		currentSubset = wtSeq[eachPosition:(eachPosition+len(targetSeq))]
 		comparisons = hamming(currentSubset,targetSeq,True,True)
 		if 0 in comparisons:
 			targetStart = eachPosition
@@ -1220,18 +1226,27 @@ def evaluateIsogenic(wtSeq,mutSeq,targetSeq,enzymeInfo,enzymeName):
 				targetSeq = revComp(targetSeq)
 			break
 	
+	# If there wasn't any cut site, just kill the function
+	if targetStart == None:
+		return(None)
+	
 	# Identify cut site
 	# Hard assumption that the cut site is at the -3 position from the 3' end of the provided 5'->3' target sequence
-	
 	if comparisons[0] == 0:
 		cutPosition = eachPosition + len(targetSeq) - 3
 	elif comparisons[1] == 0 or comparisons[2] == 0:
 		cutPosition = eachPosition + 3
 
 	# Find last shared base on each side of putative editing
-	lastSharedLeft = len(seq)
+	lastSharedLeft = len(wtSeq)
 	lastSharedRight = lastSharedLeft
-	tempEditedSeqs = crisprEdit(seq,cutPosition)
+	tempEditedSeqs = crisprEdit(wtSeq,cutPosition)
+	
+	# Make sure mutantSeq is in the list of edited sequences
+	if mutantSeq not in tempEditedSeqs:
+		tempEditedSeqs += mutantSeq
+	
+	# Find best shared base for set of edited sequences
 	if len(tempEditedSeqs) > 1:
 		for eachPair in itertools.permutations(tempEditedSeqs,2):
 			tempLastSharedLeft = lastSharedBase(eachPair[0],eachPair[1],'left')
@@ -1241,60 +1256,165 @@ def evaluateIsogenic(wtSeq,mutSeq,targetSeq,enzymeInfo,enzymeName):
 			if tempLastSharedRight > lastSharedRight:
 				lastSharedRight = tempLastSharedRight
 	else:
-		lastSharedLeft = lastSharedBase(tempEditedSeqs[0],seq,'left') # should be positive
-		lastSharedRight = lastSharedBase(tempEditedSeqs[0],seq,'right') # should be negative
+		lastSharedLeft = lastSharedBase(tempEditedSeqs[0],wtSeq,'left') # should be positive
+		lastSharedRight = lastSharedBase(tempEditedSeqs[0],wtSeq,'right') # should be negative
 	
 	# Check sites left and right to see if this enzyme cuts in the mutant
+	sitesLeft = scanSingle() # This needs to be defined for the mutant! because all the indices are based on checking for cutting in the mutant
+	sitesRight = scanSingle() # TODO: what does exactMatch need to be here...
+	
+	# Count rejected primers
+	rejectedPrimers = 0
 	
 	# Iterate from left and right
 	for eachNum in [0,1]:
 		# Set up some initial variables
+		eachSet = [sitesLeft,sitesRight][eachNum]
+		currentDirection = ['left','right'][eachNum]
+		currentSet = [[],[]]
+		lastShared = [lastSharedLeft,lastSharedRight][eachNum]
+		lastSharedReverse = [lastSharedRight,lastSharedLeft][eachNum]
 		
 		# If there aren't good sites, skip this loop
 		if eachSet == [[],[]]:
 			continue
+		elif eachSet[1] != []:
+			# Start typesetting output
+			currentOut = []
+			currentOut.append("===============================")
 		
 			# If any values are negative, reverse sequences and indices
+			if any([value <0 for value in eachSet[1]]): # negative values exist
+				currentSet[1] = [0-x for x in eachSet[1]]
+				currentSet[0] = [0-x for x in eachSet[0]]
+				currentWTSeq = revComp(wtSeq)
+				currentMutSeq = revComp(mutSeq)
+				currentTarget = revComp(targetSeq)
+				currentMotif = currentMotif # Not reversing this because later on I just reverse it anyway for checks when necessary
+				currentOut.append("Sequences are reversed.")
+				lastSharedLeft = 0 - lastShared # FIXME: Check for off-by-one errors
+				lastSharedRight = 0 - lastSharedReverse # FIXME: Check for off-by-one errors
+			else:
+				currentSet[0] = eachSet[0]
+				currentSet[1] = eachSet[1]
+				currentWTSeq = wtSeq
+				currentMutSeq = mutSeq
+				currentTarget = targetSeq
+				currentMotif = currentMotif
 			
 			# Typeset information on cut sites
+			# TODO: I don't need this information for this tool
+			currentOut.append("Enzyme: " + enzymeName)
+			outputstring1 = "Possible cut site found at position " + str(currentSet[1]) + "."
+			outputstring2 = "Problem cut site found at position " + str(currentSet[0]) + "."
+			currentOut.append(outputstring1)
+			currentOut.append(outputstring2)
 			
 			# Typeset mutant sequence and the target site
+			currentOut.append("WT Sequence: " + currentWTSeq)
+			seqlens = [len(x) for x in [currentWTSeq,currentMutSeq]]
+			
+			# Generate offsets for wt/mut typesetting
+			if len(currentWTSeq) > len(currentMutSeq):
+				wtOffset = 0
+				mutOffset = max(seqlens) - min(seqlens) # TODO: check for off-by-one errors
+			else:
+				wtOffset = max(seqlens) - min(seqlens) # TODO: check for off-by-one errors
+				mutOffset = 0
+			
+			if currentDirection == "left":
+				currentOut.append("Target Sequence:" + " "*(targetStart-3) + currentTarget)
+			elif currentDirection == "right":
+				currentOut.append("Target Sequence:" + " "*(len(currentWTSeq-3)-targetStart-len(currentTarget) + wtOffset)) # TODO: check for off-by-one errors
 			
 			# Get proper enzyme direction and typeset the enzyme
 			# This accounts for cases of non-palindromic enzymes
+			for eachIndex in currentSet[1]:
+				motifDiff = hamming(currentMotif,currentMutSeq[eachIndex:(eachIndex+motifLen)],allResults=True)
+				if motifDiff[0] > min(motifDiff[1:2]):
+					currentMotif = revComp(currentMotif)
+				currentOut.append(" "*(13+eachIndex+mutOffset)+currentMotif)
 			
 			# Indicate any exact cut sites in the shared region
-			
-			# Multiple putative sites may exists, so check at each one
+			for eachIndex in currentSet[0]:
+				currentOut.append(" ")*(13+eachIndex+mutOffset) + "."*len(currentMotif)
 				
+			desiredSuitable = currentSet[1]
+			untenablePositions = currentSet[0]
+			# Multiple putative sites may exists, so check at each one
+			for eachSite in desiredSuitable:
 				# Set up a counter for how many editing events cut
+				usableSite = 0
 				
 				# Edit sequence so that the primer works
+				currentSite = currentMutSeq[eachSite:eachSite+motifLen]
+				
+				if revComp(currentMotif).lower() == currentMotif.lower():
+					orientedMotif = currentMotif
+				else: # TODO: check right orientation. wait do I even need to do this? I thought I checked and covered this earlier.
+					orientedMotif = currentMotif
+				
+				orientedMotif = list(orientedMotif)
+				currentSite = list(currentSite)
 				
 				# Change bases and reconstruct altered sequence
+				for each in range(0,lastSharedLeft - eachSite - 1):
+					if orientedMotif[each].lower() in ['g','c','a','t'] and orientedMotif[each].lower() != currentSite[each].lower():
+						currentSite[each] = orientedMotif[each]
+					elif orientedMotif[each].lower() in ['y','r','w','s','k','m','d','v','h','b'] and hamming(orientedMotif[each].lower(),currentSite[each].lower()) != [0]:
+						currentSite[each] = getDegenerateMatch(orientedMotif[each]) # TODO/FIXME: right now it includes the degenerate base in the primer, but should I have it randomly pick a compatible base?
+				orientedMotif = ''.join(orientedMotif)
+				currentSite = ''.join(currentSite)
+				seqLeft = currentMutSeq[:eachSite]
+				seqRight = currentMutSeq[(eachSite+motifLen):]
+				alteredSeq = seqLeft+currentSite+seqRight
 				
 				# Simulate CRISPR edits
+				# TODO: If mutSeq is in this set, remove it
+				altSeqs = crisprEdit(alteredSeq,cutPosition)
+				if currentMutSeq in altSeqs:
+					altSeqs = [x for x in altSeqs if x != currentMutSeq]
+				seqNum = len(altSeqs)
+				
+				# TODO: I need to think carefully about how indels might overlap with the edited sequences.
 				
 				# Set up variables to count cuts and tests
+				comparisonCount = 0
+				cutCount = 0
 				
 				# See if the enzyme cuts the edited sites
-					
+				for eachSequence in altSeqs:
 					# Find proportional distance between edited and motif sequences
+					proportionTest = proportionalDistnace(eachSequence[desiredSuitable[0]:desiredSuitable[0]+motifLen],currentMotif)
 					
 					# Get the set with the best match
+					setToUse = [comp for comp in proportionTest if comp[0] == min([comp2[0] for comp2 in proportionTest])][0]
 					
 					# Add the number of comparisons made
+					comparisonCount += setToUse[0]
 					
 					# Add the number of possible cuts if any exist
+					if setToUse[2] == 0:
+						cutCount += setToUse[0] * setToUse[1]
 				
 				# Examine whether the proportion of cuts is above the threshold for the site
-				
+				# TODO/FIXME: make sure the logic of this is correct! I want it to cut only mutSeq and NOT wtSeq or any other edited sequence!
+				if (100*cutCount/comparisonCount) <= Settings.seqThreshold:
 					# Attempt to generate a primer
+					newPrimer = generatePrimer(currentSeq,untenablePositions,eachSite,lastSharedLeft,currentMotif)
 					
 					# Typeset the primer if it worked
+					if newPrimer is not None:
+						currentOut.append("Possible screening primer found.")
+						currentOut.append(" "*(13+lastSharedLeft-len(newPrimer[0]))+newPrimer[0]+mutOffset)
+						output.append(currentOut)
+					else:
+						rejectedPrimers += 1
 	
-	
-	return(None)
+	if rejectedPrimers == (len(sitesLeft[1])+len(sitesRight[1])):
+		return(None)
+	else:
+		return(output)
 		
 def generatePrimer(seq,untenablePositions,desiredSuitable,lastShared,currentMotif):
 	"""

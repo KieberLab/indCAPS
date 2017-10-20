@@ -141,7 +141,7 @@ def screening():
 	return(render_template('index.html')) 
 
 # Isogenic screening
-@application.route('/isogenic.html')
+@application.route('/isogenic.html', methods=['GET','POST'])
 def isogenic():
 	errors = []
 	allResults = []
@@ -149,8 +149,8 @@ def isogenic():
 	if request.method == "POST":
 		# Get stuff the user entered
 		try:
-			seq1 = bleach.clean(request.form['seq'])
-			seq2 = bleach.clean(request.form['mut'])
+			wtSeq = bleach.clean(request.form['wtSeq'])
+			mutantSeq = bleach.clean(request.form['mutSeq'])
 			targetSeq = bleach.clean(request.form['targetSeq'])
 			hamDist = int(bleach.clean(request.form['ham']))
 			TM = int(bleach.clean(request.form['tm']))
@@ -166,20 +166,46 @@ def isogenic():
 			errors.append("Error in input form.")
 			errors.append(e)
 			return(render_template('isogenic.html',allResults=None,notes=errors))
-		if seq1 and seq2 and targetSeq:
-			x = 1
+		if wtSeq and mutSeq and targetSeq:
 			# Make settings object
+			Settings = indCAPS.SettingsObject(TM=TM,ampliconLength=ampliconLength,primerType=primerType,primerLength=primerLength,allowMismatch=allowMisMatch,hammingThreshold=hamDist,organism=organism,sodiumConc=sodiumConc,primerConc=primerConc*10**(-9),seqThreshold=seqThreshold)
+			
 			# Populate modules with settings object
+			indCAPS.Settings = Settings
+			helperFuncs.Settings = Settings
+			
 			# Evaluate the input
+			inputEvaluation = helperFuncs.evaluateInput(seq)
+			wtSeq = inputEvaluation[0]
+			mutSeq = inputEvaluation[1]
+			notes = inputEvaluation[2]
+			siteMatches = helperFuncs.checkSingleSite(wtSeq,targetSeq)
+			
+			if siteMatches == 0:
+				# No matches present
+				notes.append("Target sequence does not match any region in the wild-type sequence. Please provide a new target.")
+				return(render_template('isogenic.html',allResults=None,notes=notes))
+			elif siteMatches > 1:
+				# Too many matches present
+				notes.append("Target sequence matches multiple locations in provided wild-type sequence. Primers cannot be designed. Please choose a different target sequence.")
+				return(render_template('isogenic.html',allResults=None,notes=notes))
+			
 			# Call function to evaluate enzymes
+			for eachEnzyme in enzymes:
+				enzymeName = eachEnzyme
+				enzymeValue = enzymes[eachEnzyme]
+				evalResults = indCAPS.evaluteIsogenic(wtSeq,mutSeq,targetSeq,enzymeValue,enzymeName)
+				if mutationResults is not None:
+					allResults.append(mutationResults)
 			
 			# Tell the user if the program failed
 			if allResults == [] or allResults == None:
 				notes.append('No primer candidates. Please consider increasing the mismatch tolerance or altering your desired amplicon length.')
+
 			# Render the results, send the user to the results page
 			return(render_template('isogenic.html',allResults=allResults,notes=notes))
-
-	return(render_template('index.html')
+	# If you tried to go to the results page on your own rather than being sent by the index, redirect the user to the index page
+	return(render_template('index.html'))
 
 # Gotta show up in Google
 @application.route('/google61adb2a906ee8c51.html')
