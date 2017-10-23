@@ -99,7 +99,7 @@ def screening():
 		except Exception as e:
 			errors.append("Error in input form.")
 			errors.append(e)
-			return(render_template('results.html',allResults=None,notes=errors))
+			return(render_template('results.html',allResults=[],notes=errors))
 		if seq and hamDist and TM:
 			# Make settings object
 			Settings = indCAPS.SettingsObject(TM=TM,ampliconLength=ampliconLength,primerType=primerType,primerLength=primerLength,allowMismatch=allowMisMatch,hammingThreshold=hamDist,organism=organism,sodiumConc=sodiumConc,primerConc=primerConc*10**(-9),seqThreshold=seqThreshold)
@@ -141,8 +141,11 @@ def screening():
 	return(render_template('index.html')) 
 
 # Isogenic screening
-@application.route('/isogenic.html', methods=['GET','POST'])
+@application.route('/isogenic', methods=['GET','POST'])
 def isogenic():
+	wtSeq = False
+	mutSeq = False
+	targetSeq = False
 	errors = []
 	allResults = []
 	notes = []
@@ -150,7 +153,7 @@ def isogenic():
 		# Get stuff the user entered
 		try:
 			wtSeq = bleach.clean(request.form['wtSeq'])
-			mutantSeq = bleach.clean(request.form['mutSeq'])
+			mutSeq = bleach.clean(request.form['mutSeq'])
 			targetSeq = bleach.clean(request.form['targetSeq'])
 			hamDist = int(bleach.clean(request.form['ham']))
 			TM = int(bleach.clean(request.form['tm']))
@@ -163,10 +166,12 @@ def isogenic():
 			organism = None #bleach.clean(request.form['organism'])
 			seqThreshold = float(bleach.clean(request.form['cutoffPercent']))
 		except Exception as e:
-			errors.append("Error in input form.")
+			errors.append("Error in input form: No sequences provided.")
 			errors.append(e)
-			return(render_template('isogenic.html',allResults=None,notes=errors))
+			return(render_template('isogenic.html',allResults=[],notes=errors))
 		if wtSeq and mutSeq and targetSeq:
+			if helperFuncs.nonBasePresent(wtSeq) or helperFuncs.nonBasePresent(mutSeq) or helperFuncs.nonBasePresent(targetSeq):
+				return(render_template('results.html',allResults=[],notes=["Non-bases included in input."]))
 			# Make settings object
 			Settings = indCAPS.SettingsObject(TM=TM,ampliconLength=ampliconLength,primerType=primerType,primerLength=primerLength,allowMismatch=allowMisMatch,hammingThreshold=hamDist,organism=organism,sodiumConc=sodiumConc,primerConc=primerConc*10**(-9),seqThreshold=seqThreshold)
 			
