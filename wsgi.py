@@ -180,7 +180,7 @@ def isogenic():
 			helperFuncs.Settings = Settings
 			
 			# Evaluate the input
-			inputEvaluation = helperFuncs.evaluateInput(seq)
+			inputEvaluation = helperFuncs.evaluateInput(wtSeq)
 			wtSeq = inputEvaluation[0]
 			mutSeq = inputEvaluation[1]
 			notes = inputEvaluation[2]
@@ -199,7 +199,7 @@ def isogenic():
 			for eachEnzyme in enzymes:
 				enzymeName = eachEnzyme
 				enzymeValue = enzymes[eachEnzyme]
-				evalResults = indCAPS.evaluteIsogenic(wtSeq,mutSeq,targetSeq,enzymeValue,enzymeName)
+				evalResults = indCAPS.evaluateIsogenic(wtSeq,mutSeq,targetSeq,enzymeValue,enzymeName)
 				if mutationResults is not None:
 					allResults.append(mutationResults)
 			

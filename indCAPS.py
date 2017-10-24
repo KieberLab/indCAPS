@@ -711,6 +711,10 @@ def scanSequence(seq1,seq2,currentMotif,direction):
 def scanSingle(seq,cutSite,currentMotif,direction,lastShared,lastSharedReverse,exactMatch=False):
 	"""
 	Modified version of scanSequence() that examines only one sequence.
+	lastShared and lastSharedReverse should be relative to the indicated direction
+	IE: if you have lastShared and lastSharedReverse defined as lastfrom left and last from right,
+	and you define the direction to be right, you should supply
+	lastShared=last from right, lastSharedReverse=last from left
 	
 	seq = string, valid DNA bases
 	cutSite = integer, index of cut site
@@ -1242,9 +1246,9 @@ def evaluateIsogenic(wtSeq,mutSeq,targetSeq,enzymeInfo,enzymeName):
 	lastSharedRight = lastSharedLeft
 	tempEditedSeqs = crisprEdit(wtSeq,cutPosition)
 	
-	# Make sure mutantSeq is in the list of edited sequences
-	if mutantSeq not in tempEditedSeqs:
-		tempEditedSeqs += mutantSeq
+	# Make sure mutSeq is in the list of edited sequences
+	if mutSeq not in tempEditedSeqs:
+		tempEditedSeqs.append(mutSeq)
 	
 	# Find best shared base for set of edited sequences
 	if len(tempEditedSeqs) > 1:
@@ -1260,8 +1264,8 @@ def evaluateIsogenic(wtSeq,mutSeq,targetSeq,enzymeInfo,enzymeName):
 		lastSharedRight = lastSharedBase(tempEditedSeqs[0],wtSeq,'right') # should be negative
 	
 	# Check sites left and right to see if this enzyme cuts in the mutant
-	sitesLeft = scanSingle() # This needs to be defined for the mutant! because all the indices are based on checking for cutting in the mutant
-	sitesRight = scanSingle() # TODO: what does exactMatch need to be here...
+	sitesLeft = scanSingle(mutSeq,cutPosition,currentMotif,'left',lastSharedLeft,lastSharedRight,exactMatch=False) # This needs to be defined for the mutant! because all the indices are based on checking for cutting in the mutant
+	sitesRight = scanSingle(mutSeq,cutPosition,currentMotif,'right',lastSharedRight,lastSharedLeft,exactMatch=False) # TODO: what does exactMatch need to be here...
 	
 	# Count rejected primers
 	rejectedPrimers = 0
