@@ -17,6 +17,43 @@ import warnings
 from enzymeList import enzymes
 
 ## Custom Classes
+class ResultsObject:
+	"""
+	This object holds information on possible screening primers.
+	Previously, output was typeset as analysis progressed, which led
+	to cases where restriction enzyme sites were typeset but later
+	rejected as unsuitable.
+	
+	Information will be collected here and typeset only if the primer
+	is deemed suitable.
+	"""
+	class ResultsObject:
+	def __init__(self,enzymePosition,currentMotif,originalSeq):
+		self.enzymePosition = enzymePosition
+		self.currentMotif = currentMotif
+		self.usable = True
+		self.originalSeq = originalSeq
+		self.alteredSeq = None
+	def typesetOutput(self):
+		return(None)
+	def unusable(self):
+		"""
+		Mark this object as unusable.
+		"""
+		self.usable=False
+	def reconstructSequence(self):
+		for each in range(0,lastSharedLeft-eachSite-1): 
+			if orientedMotif[each].lower() in ['g','c','t','a'] and orientedMotif[each].lower() != currentSite[each].lower():
+				currentSite[each] = orientedMotif[each] 
+			elif orientedMotif[each].lower() in ['y','r','w','s','k','m','d','v','h','b'] and hamming(orientedMotif[each].lower(),currentSite[each].lower()) != [0]:
+				currentSite[each] = getDegenerateMatch(orientedMotif[each]) # TODO/FIXME: right now it includes the degenerate base in the primer, but should I have it randomly pick a compatible base?
+		orientedMotif = ''.join(orientedMotif)
+		currentSite = ''.join(currentSite)
+		seqLeft = currentSeq[:eachSite]
+		seqRight = currentSeq[(eachSite+motifLen):]
+		self.alteredSeq = seqLeft+currentSite+seqRight		
+		return(alteredSeq)
+
 class SettingsObject:
 	"""
 	This object should be in the global scope and hold all the 
@@ -887,6 +924,7 @@ def evaluateMutations(seq,targetSeq,enzymeInfo,enzymeName):
 		elif eachSet[1] != []: # if it doesn't cut in the wild-type, it will be []. if it cuts, it won't be [].
 			# Start typesetting some output
 			currentOut = []
+			candidateList = []
 			currentOut.append("===============================")
 			
 			# If any values are negative, reverse the sequences and indices
@@ -897,7 +935,7 @@ def evaluateMutations(seq,targetSeq,enzymeInfo,enzymeName):
 				currentSeq = revComp(seq)
 				currentTarget = revComp(targetSeq)
 				currentMotif = currentMotif
-				currentOut.append("Sequences are reversed.")
+				currentOut.append("Sequences have been reversed.")
 				lastSharedLeft = 0 - lastShared # FIXME: Check for off-by-one errors
 				lastSharedRight = 0 - lastSharedReverse # FIXME: Check for off-by-one errors
 			else:
@@ -926,7 +964,8 @@ def evaluateMutations(seq,targetSeq,enzymeInfo,enzymeName):
 				motifDiff = hamming(currentMotif,currentSeq[eachIndex:(eachIndex+motifLen)],allResults=True)
 				if motifDiff[0] > min(motifDiff[1:2]):
 					currentMotif = revComp(currentMotif)
-				currentOut.append(" "*(13+eachIndex) + currentMotif)
+				#currentOut.append(" "*(13+eachIndex) + currentMotif)
+				candidateList.append(ResultsObject(eachIndex,currentMotif))
 			
 			# Indicate any exact cut sites in the shared regions
 			for eachIndex in currentSet[0]:
@@ -952,17 +991,19 @@ def evaluateMutations(seq,targetSeq,enzymeInfo,enzymeName):
 				orientedMotif = list(orientedMotif)
 				currentSite = list(currentSite)
 				
+				# TODO: move this into results object methods
 				# Change bases and reconstruct altered sequence
-				for each in range(0,lastSharedLeft-eachSite-1): 
-					if orientedMotif[each].lower() in ['g','c','t','a'] and orientedMotif[each].lower() != currentSite[each].lower():
-						currentSite[each] = orientedMotif[each] 
-					elif orientedMotif[each].lower() in ['y','r','w','s','k','m','d','v','h','b'] and hamming(orientedMotif[each].lower(),currentSite[each].lower()) != [0]:
-						currentSite[each] = getDegenerateMatch(orientedMotif[each]) # TODO/FIXME: right now it includes the degenerate base in the primer, but should I have it randomly pick a compatible base?
-				orientedMotif = ''.join(orientedMotif)
-				currentSite = ''.join(currentSite)
-				seqLeft = currentSeq[:eachSite]
-				seqRight = currentSeq[(eachSite+motifLen):]
-				alteredSeq = seqLeft+currentSite+seqRight
+				#for each in range(0,lastSharedLeft-eachSite-1): 
+					#if orientedMotif[each].lower() in ['g','c','t','a'] and orientedMotif[each].lower() != currentSite[each].lower():
+						#currentSite[each] = orientedMotif[each] 
+					#elif orientedMotif[each].lower() in ['y','r','w','s','k','m','d','v','h','b'] and hamming(orientedMotif[each].lower(),currentSite[each].lower()) != [0]:
+						#currentSite[each] = getDegenerateMatch(orientedMotif[each]) # TODO/FIXME: right now it includes the degenerate base in the primer, but should I have it randomly pick a compatible base?
+				#orientedMotif = ''.join(orientedMotif)
+				#currentSite = ''.join(currentSite)
+				#seqLeft = currentSeq[:eachSite]
+				#seqRight = currentSeq[(eachSite+motifLen):]
+				#alteredSeq = seqLeft+currentSite+seqRight
+				currentObject.reconstructSequence()
 								
 				# Simulate CRISPR edits
 				altSeqs = crisprEdit(alteredSeq,cutPosition)
@@ -1003,17 +1044,23 @@ def evaluateMutations(seq,targetSeq,enzymeInfo,enzymeName):
 				if (100*cutCount/comparisonCount) <= Settings.seqThreshold:
 					# Attempt to generate a primer
 					newPrimer = generatePrimer(currentSeq,untenablePositions,eachSite,lastSharedLeft,currentMotif)
+					# TODO: store the new primer in the result object
 					
 					# Typeset the primer if it worked
 					if newPrimer is not None:
+						# TODO: if necessary, set object flag with .unusable(), don't immediately typeset
 						currentOut.append("Possible screening primer found.")
 						currentOut.append(" "*(13+lastSharedLeft-len(newPrimer[0]))+newPrimer[0])
 						output.append(currentOut)
 					else:
 						rejectedPrimers += 1
+			# TODO: typeset output here from results objects (at this indent level)
+			for eachObject in candidateList:
+				if eachObject.usable == True:
+					output.append(eachObject.typesetOutput())
 	if rejectedPrimers == (len(sitesLeft[1])+len(sitesRight[1])):
 		return(None)
-	else:
+	else:	
 		return(output)
 
 def evaluateSites(seq1,seq2,enzymeInfo,enzymeName):
@@ -1034,20 +1081,19 @@ def evaluateSites(seq1,seq2,enzymeInfo,enzymeName):
 	output = list of strings to be typeset by the web page, 
 		listing results of screening for diagnostic primers
 	"""
-	# This calls scanSequence(), which returns a two-element list of form:
-	# [untenable positions, suitable positions]
-	# Untenable positions are positions in the upstream shared region where there is an exact match
-	# The primer will need to edit these positions in order to work.
-	# Suitable positions are positions where there is either an exact match for a motif or a match below the threshold
-	# Suitable positions mark places that are diagnostic for one sequence or the other
-	
 	currentMotif = enzymeInfo[0]
+	
 	# Search from Left
 	sitesLeft = scanSequence(seq1,seq2,currentMotif,'left')
 	# Is [ [untenable positions] , [suitable positions] ]
 	# Search from Right
 	sitesRight = scanSequence(seq1,seq2,currentMotif,'right')
 	# Is [ [untenable positions] , [suitable positions] ]
+	
+	# Untenable positions are positions in the upstream shared region where there is an exact match
+	# The primer will need to edit these positions in order to work.
+	# Suitable positions are positions where there is either an exact match for a motif or a match below the threshold
+	# Suitable positions mark places that are diagnostic for one sequence or the other
 	
 	output = []
 	motifLen = len(currentMotif)
@@ -1069,7 +1115,7 @@ def evaluateSites(seq1,seq2,enzymeInfo,enzymeName):
 				currentSeq1 = revComp(seq1)
 				currentSeq2 = revComp(seq2)
 				currentMotif = currentMotif
-				currentOut.append("Sequences are reversed.")
+				currentOut.append("Sequences have been reversed.")
 			else:
 				currentSet[0] = eachSet[0]
 				currentSet[1] = eachSet[1]
