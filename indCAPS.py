@@ -1134,7 +1134,7 @@ def evaluateSites(seq1,seq2,enzymeInfo,enzymeName):
 					elif amp2Cut == True:
 						cutStrand = "Sequence 2"
 					
-					currentOut.append("Assay for above primer cuts "+cutStrand+". The primer has Tm "+str(estimateTM(newPrimer[0]))+" degrees C.")
+					currentOut.append("Assay for above primer cuts "+cutStrand+". The primer has Tm "+"{:.2f}".format(estimateTM(newPrimer[0]))+" degrees C.")
 				else:
 					currentRejects += 1
 					continue
@@ -1178,7 +1178,7 @@ def putativePrimer(seq,lastShared):
 	if Settings.primerType == 'tm':
 		output = []
 		for eachPrimer in primerList:
-			output.append(estimateTM(eachPrimer))
+			output.append("{:.2f}".format(estimateTM(eachPrimer)))
 		
 		# Filter for negative values
 		filterList = [x for x in range(0,len(output)) if output[x] <= 0]
@@ -1305,7 +1305,7 @@ def generatePrimer(seq,untenablePositions,desiredSuitable,lastShared,currentMoti
 		primerList.append(currentPrimer)
 		currentStart -= 1
 	for eachPrimer in primerList:
-		output.append(estimateTM(eachPrimer))
+		output.append("{:.2f}".format(estimateTM(eachPrimer)))
 	
 	# Filter for negative values
 	filterList = [x for x in range(0,len(output)) if output[x] <= 0]
