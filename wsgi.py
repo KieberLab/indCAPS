@@ -182,7 +182,6 @@ def isogenic():
 			# Evaluate the input
 			inputEvaluation = helperFuncs.evaluateInput(wtSeq)
 			wtSeq = inputEvaluation[0]
-			mutSeq = inputEvaluation[1]
 			notes = inputEvaluation[2]
 			siteMatches = helperFuncs.checkSingleSite(wtSeq,targetSeq)
 			
@@ -199,9 +198,9 @@ def isogenic():
 			for eachEnzyme in enzymes:
 				enzymeName = eachEnzyme
 				enzymeValue = enzymes[eachEnzyme]
-				evalResults = indCAPS.evaluateIsogenic(wtSeq,mutSeq,targetSeq,enzymeValue,enzymeName)
-				if mutationResults is not None:
-					allResults.append(mutationResults)
+				isogenicResults = indCAPS.evaluateIsogenic(wtSeq,mutSeq,targetSeq,enzymeValue,enzymeName)
+				if isogenicResults is not None:
+					allResults.append(isogenicResults)
 			
 			# Tell the user if the program failed
 			if allResults == [] or allResults == None:
