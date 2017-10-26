@@ -555,35 +555,45 @@ def scanUnshared(seq,currentMotif,lastShared,lastSharedReverse):
 	seqUSpos = []
 	seqUSexact = []
 
-	# Scan across seq1 unshared
+	# Scan across unshared sequence
 	for eachPosition in range(0,len(seqUnshared)-motifLen+1):
 		
+		# I am scanning the entire unshared region here because I want to know if there's any exact matches I can't reach with a border-spanning motif
+		
+		# If I AM near the border, I need to be careful that I consider sequence inside and outside the border separately
+		# The reason: the sequence here actually contains both shared sequence and unshared sequence
+		# shared sequence is something I can edit with a primer, but unshared sequence I can't edit
+		# if it's completely unshared sequence i'm looking at, that's useful, because then it's compatible with a CAPS assay
 		if eachPosition < border:
+			# Split the sequence into parts
 			partSeqLeft = seqUnshared[eachPosition:border]
 			partSeqRight = seqUnshared[border:eachPosition+motifLen]
 			
+			# Split the motif into parts
 			partMotifLeft = currentMotif[:len(partSeqLeft)]
 			partMotifRight = currentMotif[len(partSeqLeft):]	
 			
+			# Reconstruct motif with n's for sequence I won't consider
 			currentSeqLeft = partSeqLeft + "n"*(eachPosition+motifLen-border)
 			currentSeqRight = "n"*(border-eachPosition) + partSeqRight
 			currentMotifLeft = partMotifLeft + "n"*(len(currentMotif) - len(partSeqLeft))
 			currentMotifRight = "n"*len(partSeqLeft) + partMotifRight
 			
+			# Get Hamming distances
 			leftHam = hamming(currentMotifLeft,currentSeqLeft,allComparisons=False)
 			rightHam = hamming(currentMotifRight,currentSeqRight,allComparisons=False)
 			
-			if leftHam == 0 and rightHam == 0:
+			if leftHam == 0 and rightHam == 0: # If complete match, add position to both fields
 				seqUSpos.append(eachPosition+lastShared - motifLen + 1)
 				seqUSexact.append(eachPosition+lastShared - motifLen + 1)
-			elif leftHam <= Settings.hammingThreshold and rightHam == 0:
+			elif leftHam <= Settings.hammingThreshold and rightHam == 0: # If partial match, add position to  field for possible site
 				seqUSpos.append(eachPosition+lastShared - motifLen + 1)
 
-		else:
+		else: # If i'm not near the border, I can just look at the sequence regularly
 			currentSeq1 = seqUnshared[eachPosition:eachPosition+motifLen]
 			currentHam = hamming(currentSeq1,currentMotif)
 			
-			if currentHam == 0:
+			if currentHam == 0: # I'm only interested in exact matches here, so I'm setting both fields
 				seqUSpos.append(eachPosition+lastShared - motifLen + 1)
 				seqUSexact.append(eachPosition+lastShared - motifLen + 1)
 	return([seqUSpos,seqUSexact])
@@ -637,6 +647,7 @@ def scanSequence(seq1,seq2,currentMotif,direction):
 	if primerCutoff < motifLen:
 		primerCutoff = 0
 	
+	# Examine the left shared region to make sure there aren't exact matches
 	for eachPosition in range(primerCutoff,lastShared - motifLen):
 		currentRegion1 = seq1[eachPosition : motifLen + eachPosition]
 		currentRegion2 = seq2[eachPosition : motifLen + eachPosition]
@@ -801,10 +812,9 @@ def scanSingle(seq,currentMotif,direction,lastShared,lastSharedReverse,exactMatc
 	seqUSpos = seqResults[0]
 	
 	# Make sure there's not exact matches in both
-	if not (len(seqUSexact) > 0):
-		if seqUSpos is not []:
-			for eachPosition in seqUSpos:
-				suitablePositions.append(eachPosition)
+	if seqUSpos is not []:
+		for eachPosition in seqUSpos:
+			suitablePositions.append(eachPosition)
 	if direction is 'right':
 		newUntenable = [0 - x for x in untenablePositions]
 		newSuitable = [0 - x for x in suitablePositions]
@@ -1002,11 +1012,10 @@ def evaluateMutations(seq,targetSeq,enzymeInfo,enzymeName):
 				# YOU WANT IT NOT TO CUT, YOU WANT cutCount TO BE AS LOW AS POSSIBLE
 				# THE WHOLE POINT IS IT DOESN'T CUT THE MUTANT
 				# I'M YELLING BECUASE THIS IS LIKE THE THIRD TIME I'VE LOOKED AT THIS AND THOUGHT 'hey why isn't it >=' AND SPENT LIKE TWO HOURS AUDITING MY CODE AND IM SICK OF IT HAPPENING
-				
 				if (100*cutCount/comparisonCount) <= Settings.seqThreshold:
 					# Attempt to generate a primer
 					newPrimer = generatePrimer(currentSeq,untenablePositions,eachSite,lastSharedLeft,currentMotif)
-					
+
 					# Typeset the primer if it worked
 					if newPrimer is not None:
 						currentOut.append("Possible screening primer found.")
