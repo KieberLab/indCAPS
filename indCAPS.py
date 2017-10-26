@@ -1174,7 +1174,7 @@ def putativePrimer(seq,lastShared):
 	if Settings.primerType == 'tm':
 		output = []
 		for eachPrimer in primerList:
-			output.append("{:.2f}".format(estimateTM(eachPrimer)))
+			output.append(estimateTM(eachPrimer))
 		
 		# Filter for negative values
 		filterList = [x for x in range(0,len(output)) if output[x] <= 0]
@@ -1527,7 +1527,7 @@ def generatePrimer(seq,untenablePositions,desiredSuitable,lastShared,currentMoti
 		primerList.append(currentPrimer)
 		currentStart -= 1
 	for eachPrimer in primerList:
-		output.append("{:.2f}".format(estimateTM(eachPrimer)))
+		output.append(estimateTM(eachPrimer))
 	
 	# Filter for negative values
 	filterList = [x for x in range(0,len(output)) if output[x] <= 0]
