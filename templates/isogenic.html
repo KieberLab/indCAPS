@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>indCAPS</title>
+<link rel="stylesheet" href="static/custom.css" type="text/css" />
+</head>
+<body>
+<ul>
+{% for note in notes %}
+<li>{{ note }}</li>
+{% endfor %}
+</ul>
+<div>
+<pre>
+{% for enzymeResult in allResults %}
+{% for eachLine in enzymeResult %}
+{% for eachItem in eachLine %}
+{{ eachItem }}
+{% endfor %}
+{% endfor %}
+{% endfor %}
+</pre>
+</div>
+</body>
+</html>
+
+
+<span class="inner-pre" style="margin:0; text-align: left;">
