@@ -1020,6 +1020,7 @@ def evaluateMutations(seq,targetSeq,enzymeInfo,enzymeName):
 					if newPrimer is not None:
 						currentOut.append("Possible screening primer found.")
 						currentOut.append(" "*(13+lastSharedLeft-len(newPrimer[0]))+newPrimer[0])
+						currentOut.append("The above primer has a Tm of "+"{:.2f}".format(estimateTM(newPrimer[0]))+" degrees C.")
 						output.append(currentOut)
 					else:
 						rejectedPrimers += 1
@@ -1418,6 +1419,7 @@ def evaluateIsogenic(wtSeq,mutSeq,targetSeq,enzymeInfo,enzymeName):
 					if newPrimer is not None:
 						currentOut.append("Possible screening primer found.")
 						currentOut.append(" "*(13+mutOffset+lastSharedLeft-len(newPrimer[0]))+newPrimer[0])
+						currentOut.append("The above primer has a Tm of "+"{:.2f}".format(estimateTM(newPrimer[0]))+" degrees C.")
 						output.append(currentOut)
 					else:
 						rejectedPrimers += 1
