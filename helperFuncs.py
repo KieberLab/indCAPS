@@ -76,7 +76,7 @@ def evaluateInput(seq1,seq2=None):
 		
 		if lastSharedLeft <= Settings.primerLength:
 			notes.append('Insufficient shared bases on the left side of the inputted sequences. Primer design may fail or may not reach sufficient length or Tm.')
-		if lastSharedRight <= Settings.primerLength:
+		if abs(lastSharedRight) <= Settings.primerLength:
 			notes.append('Insufficient shared bases on the right side of the inputted sequences. Primer design may fail or may not reach sufficient length or Tm.')
 
 	return([seq1,seq2,notes])

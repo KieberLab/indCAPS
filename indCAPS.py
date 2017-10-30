@@ -174,6 +174,15 @@ def getDegenerateMatch(base):
 	# Return just the string, not the string in a list
 	replacementBase = possibleMatches[base][0]
 	return(replacementBase)
+
+def typesetPrimer(oldSeq,primer):
+	oldSeq = list(oldSeq.upper())
+	primer = list(primer.upper())
+	for eachBase in range(0,len(oldSeq)):
+		if primer[eachBase] != oldSeq[eachBase]:
+			primer[eachBase] = primer[eachBase].lower()
+	primer = ''.join(primer)
+	return(primer)
 	
 def hamming(seq1,seq2,allResults=False,allComparisons=True):
 	"""
@@ -302,9 +311,12 @@ def revComp(seq1):
 	return(seqString)
 
 def changeBases(oldSeq,currentSite,orientedMotif,lastSharedLeft,eachSite):
+	oldSeq = oldSeq.upper()
+	currentSite = currentSite.upper()
 	motifLen = len(orientedMotif)
 	orientedMotif = list(orientedMotif)
 	currentSite = list(currentSite)
+
 	for each in range(0,lastSharedLeft - eachSite):
 			if orientedMotif[each].lower() in ['g','c','a','t'] and orientedMotif[each].lower() != currentSite[each].lower():
 				currentSite[each] = orientedMotif[each]
@@ -1031,6 +1043,8 @@ def evaluateMutations(seq,targetSeq,enzymeInfo,enzymeName):
 						output.append(currentOut)
 					else:
 						rejectedPrimers += 1
+				else:
+					rejectedPrimers += 1
 	if rejectedPrimers == (len(sitesLeft[1])+len(sitesRight[1])):
 		return(None)
 	else:
@@ -1433,7 +1447,8 @@ def evaluateIsogenic(wtSeq,mutSeq,targetSeq,enzymeInfo,enzymeName):
 						output.append(currentOut)
 					else:
 						rejectedPrimers += 1
-	
+				else:
+					rejectedPrimers += 1
 	if rejectedPrimers == (len(sitesLeft[1])+len(sitesRight[1])):
 		return(None)
 	else:
@@ -1562,6 +1577,9 @@ def generatePrimer(seq,untenablePositions,desiredSuitable,lastShared,currentMoti
 	if hamTest > Settings.hammingThreshold:
 		return(None)
 	
+	print(bestPrimer[0])
+	bestPrimer = [typesetPrimer(originalSeq[bestPrimerStart:bestPrimerStart+len(bestPrimer[0])],bestPrimer[0])]
+	
 	# Check primer against mismatch criteria
 	if lastPrimerBase != lastSeqBase and Settings.allowMismatch == True:
 		# get the template base, which is the complement of the listed base
@@ -1576,6 +1594,7 @@ def generatePrimer(seq,untenablePositions,desiredSuitable,lastShared,currentMoti
 			return(bestPrimer)
 		else:
 			return(None)
+	
 	elif lastPrimerBase != lastSeqBase and Settings.allowMismatch == False:
 		return(None)
 	else:
