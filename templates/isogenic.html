@@ -6,12 +6,15 @@
 </head>
 <body>
 <ul>
+{% if notes != [] %}
 {% for note in notes %}
 <li>{{ note }}</li>
 {% endfor %}
+{% endif %}
 </ul>
 <div>
 <pre>
+{% if allResults != [] %}
 {% for enzymeResult in allResults %}
 {% for eachLine in enzymeResult %}
 {% for eachItem in eachLine %}
@@ -19,6 +22,7 @@
 {% endfor %}
 {% endfor %}
 {% endfor %}
+{% endif %}
 </pre>
 </div>
 </body>
