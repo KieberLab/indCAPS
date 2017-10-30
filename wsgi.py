@@ -57,7 +57,7 @@ def results():
 			inputEvaluation = helperFuncs.evaluateInput(seq1, seq2)
 			seq1 = inputEvaluation[0]
 			seq2 = inputEvaluation[1]
-			notes = inputEvaluation[2]
+			notes.extend(inputEvaluation[2])
 
 			# Call function to evaluate enzymes
 			for eachEnzyme in enzymes:
@@ -112,7 +112,8 @@ def screening():
 			inputEvaluation = helperFuncs.evaluateInput(seq)
 			seq1 = inputEvaluation[0]
 			seq2 = inputEvaluation[1] # seq2 is not used! I dont need this here!
-			notes = inputEvaluation[2]
+			notes.extend(inputEvaluation[2])
+			
 			siteMatches = helperFuncs.checkSingleSite(seq1,targetSeq)
 			if siteMatches == 0:
 				# No matches present
@@ -171,7 +172,8 @@ def isogenic():
 			return(render_template('isogenic.html',allResults=[],notes=errors))
 		if wtSeq and mutSeq and targetSeq:
 			if helperFuncs.nonBasePresent(wtSeq) or helperFuncs.nonBasePresent(mutSeq) or helperFuncs.nonBasePresent(targetSeq):
-				return(render_template('results.html',allResults=[],notes=["Non-bases included in input."]))
+				errors.append("Non-bases included in input.")
+				return(render_template('results.html',allResults=[],notes=errors))
 			# Make settings object
 			Settings = indCAPS.SettingsObject(TM=TM,ampliconLength=ampliconLength,primerType=primerType,primerLength=primerLength,allowMismatch=allowMisMatch,hammingThreshold=hamDist,organism=organism,sodiumConc=sodiumConc,primerConc=primerConc*10**(-9),seqThreshold=seqThreshold)
 			
@@ -182,8 +184,13 @@ def isogenic():
 			# Evaluate the input
 			inputEvaluation = helperFuncs.evaluateInput(wtSeq)
 			wtSeq = inputEvaluation[0]
-			notes = inputEvaluation[2]
+			notes.extend(inputEvaluation[2])
+
 			siteMatches = helperFuncs.checkSingleSite(wtSeq,targetSeq)
+			
+			inputEvaluation2 = helperFuncs.evaluateInput(mutSeq)
+			mutSeq = inputEvaluation2[0]
+			notes.extend(inputEvaluation2[2])
 			
 			if siteMatches == 0:
 				# No matches present

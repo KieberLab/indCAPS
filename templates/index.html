@@ -48,7 +48,7 @@
 	<form role="form" class="elegant-aero" method="POST" action="{{url_for('screening') }}">
 	<h1>Design of dCAPS Screening Primers for CRISPR/Cas9 Editing Events</h1>
 	WT sequence: <input type="text" value="AGTTCAACGTTAGCATGAATCATGTTCAAGCCATGTCTATCTTGATCTCAACCTTCCACCATGGCAAGATTCCTTCTGCTATCGATC" name="seq"><br>
-	CRISPR target sequence: <input type="text" value="TTGAGATCAAGATAGACA" name="targetSeq"><br>
+	CRISPR target sequence: <input type="text" value="GGTTGAGATCAAGATAGACA" name="targetSeq"><br>
 	Mismatch Max: <input type="text" name="ham" value="1"><br>
 	Acceptable loss: <input type="text" name="cutoffPercent" value="10"><br>
 	<input class="elegant-aero" type="submit" value="Submit"><br>
@@ -67,7 +67,7 @@
 <div style="clear:both;"></div>
 <br>
 <br>
-
+<!--
 <p>It may be desired to identify a mutant isogenic to another in a CRISPR mutagenesis experiment, e.g. using CRISPR/Cas9 methods to introduce a CRISPR-derived indel in a high order mutant line rather than crossing the high order mutant and isolated CRISPR mutant. If this is the case, the following tool can be used. The user supplies the wild-type and desired mutant sequence and the CRISPR target sequence originally used, and the program searches for a primer which identifies only the specific CRISPR mutation desired.</p>
 
 <p>Note: this process is highly dependent on the expected types of CRISPR edits. Currently only single base pair indels are considered.</p>
@@ -76,7 +76,7 @@
 	<h1>Design of dCAPS Screening Primers for Isogenic Mutagenic Events</h1>
 	WT Sequence: <input type="text" name="wtSeq" value="AGTTCAACGTTAGCATGAATCATGTTCAAGCCATGTCTATCTTGATCTCAACCTTCCACCATGGCAAGATTCCTTCTGCTATCGATC"><br>
 	Mutant Sequence: <input type="text" name="mutSeq" value="AGTTCAACGTTAGCATGAATCATGTTCAAGCCATGTCCTATCTTGATCTCAACCTTCCACCATGGCAAGATTCCTTCTGCTATCGATC"><br>
-	CRISPR Target Sequence:  <input type="text" name="targetSeq" value="TTGAGATCAAGATAGACA"><br>
+	CRISPR Target Sequence:  <input type="text" name="targetSeq" value="GGTTGAGATCAAGATAGACA"><br>
 	Mismatch Max: <input type="text" value="1" name="ham"><br>
 	Acceptable loss: <input type="text" name="cutoffPercent" value="10"><br>
 	<input class="elegant-aero" type="submit" value="Submit"><br>
@@ -93,7 +93,7 @@
 	</div>
 </form>
 </div>
-
+-->
 <div style="clear:both;"></div>
 Example output:
 <br>
