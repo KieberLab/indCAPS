@@ -100,7 +100,7 @@ def screening():
 			errors.append("Error in input form.")
 			errors.append(e)
 			return(render_template('results.html',allResults=[],notes=errors))
-		if seq and hamDist and TM:
+		if seq:
 			# Make settings object
 			Settings = indCAPS.SettingsObject(TM=TM,ampliconLength=ampliconLength,primerType=primerType,primerLength=primerLength,allowMismatch=allowMisMatch,hammingThreshold=hamDist,organism=organism,sodiumConc=sodiumConc,primerConc=primerConc*10**(-9),seqThreshold=seqThreshold)
 			
@@ -123,7 +123,7 @@ def screening():
 				# Too many matches present
 				notes.append('Target matches multiple locations in provided sequence. Primers cannot be designed. Please choose a different target sequence.')
 				return(render_template('screening.html',allResults=None,notes=notes))
-				
+			
 			# Call function to evaluate enzymes
 			for eachEnzyme in enzymes:
 				enzymeName = eachEnzyme
@@ -212,7 +212,6 @@ def isogenic():
 			# Tell the user if the program failed
 			if allResults == [] or allResults == None:
 				notes.append('No primer candidates. Please consider increasing the mismatch tolerance or altering your desired amplicon length.')
-
 			# Render the results, send the user to the results page
 			return(render_template('isogenic.html',allResults=allResults,notes=notes))
 	# If you tried to go to the results page on your own rather than being sent by the index, redirect the user to the index page
