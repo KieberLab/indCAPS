@@ -68,6 +68,9 @@
 <br>
 <br>
 <!--
+<p>It may be desired to identify a mutant isogenic to another in a CRISPR mutagenesis experiment, e.g. using CRISPR/Cas9 methods to introduce a CRISPR-derived indel in a high order mutant line rather than crossing the high order mutant and isolated CRISPR mutant. If this is the case, the following tool can be used. The user supplies the wild-type and desired mutant sequence and the CRISPR target sequence originally used, and the program searches for a primer which identifies only the specific CRISPR mutation desired.</p>
+
+<p>Note: this process is highly dependent on the expected types of CRISPR edits. Currently only single base pair indels are considered.</p>
 <div>
 <form role="form" class="elegant-aero" method="POST" action="{{ url_for('isogenic') }}">
 	<h1>Design of dCAPS Screening Primers for Isogenic Mutagenic Events</h1>
