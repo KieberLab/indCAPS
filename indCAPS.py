@@ -1091,9 +1091,10 @@ def evaluateSites(seq1,seq2,enzymeInfo,enzymeName):
 	for eachSet in [sitesLeft,sitesRight]:
 		currentRejects = 0
 		currentSet=[[],[]]
+
 		if eachSet == [[],[]]:
-			return(None)
-		elif eachSet[1] != []:
+			continue
+		if eachSet[1] != []:
 			currentOut = []
 			currentOut.append("===============================")
 			# REMEMBER: I can't BOTH flip the sequences and indices, that just won't work.
@@ -1173,7 +1174,6 @@ def evaluateSites(seq1,seq2,enzymeInfo,enzymeName):
 				else:
 					currentRejects += 1
 					continue
-			
 			if currentRejects == len(currentSet[1]):
 				continue
 			output.append(currentOut)
@@ -1249,12 +1249,6 @@ def evaluateIsogenic(wtSeq,mutSeq,targetSeq,enzymeInfo,enzymeName):
 	
 	Output
 	"""
-	print("starting")
-	print(wtSeq)
-	print(mutSeq)
-	print(targetSeq)
-	print(enzymeInfo)
-	print(enzymeName)
 	# Set up some variables
 	currentMotif = enzymeInfo[0]
 	directions = ["left","right"]
@@ -1275,7 +1269,6 @@ def evaluateIsogenic(wtSeq,mutSeq,targetSeq,enzymeInfo,enzymeName):
 	
 	# If there wasn't any cut site, just kill the function
 	if targetStart == None:
-		print("no target start")
 		return(None)
 	
 	# Identify cut site
@@ -1317,26 +1310,20 @@ def evaluateIsogenic(wtSeq,mutSeq,targetSeq,enzymeInfo,enzymeName):
 	sitesRight = scanSingle(mutSeq,currentMotif,'right',lastSharedReverse,lastSharedForward,exactMatch=False)
 	# Count rejected primers
 	rejectedPrimers = 0
-	print(sitesLeft)
-	print(sitesRight)
 	
 	# Iterate from left and right
 	for eachNum in [0,1]:
 		# Set up some initial variables
 		eachSet = [sitesLeft,sitesRight][eachNum]
 		currentDirection = ['left','right'][eachNum]
-		print("starting direction "+str(currentDirection))
-		print(eachSet)
 		currentSet = [[],[]]
 		lastSharedLeft = [lastSharedForward,lastSharedReverse][eachNum]
 		lastSharedRight = [lastSharedReverse,lastSharedForward][eachNum]
 		
 		# If there aren't good sites, skip this loop
 		if eachSet == [[],[]]:
-			print("empty set, continuing")
 			continue
 		elif eachSet[1] != []:
-			print("sites to use")
 			# Start typesetting output
 			currentOut = []
 			currentOut.append("===============================")
@@ -1476,13 +1463,8 @@ def evaluateIsogenic(wtSeq,mutSeq,targetSeq,enzymeInfo,enzymeName):
 				else:
 					rejectedPrimers += 1
 	if rejectedPrimers == (len(sitesLeft[1])+len(sitesRight[1])):
-		print("too many rejected primers")
-		print(rejectedPrimers)
-		print((len(sitesLeft[1])+len(sitesRight[1])))
 		return(None)
 	else:
-		print("returning output")
-		print(output)
 		return(output)
 		
 def generatePrimer(seq,untenablePositions,desiredSuitable,lastShared,currentMotif):
