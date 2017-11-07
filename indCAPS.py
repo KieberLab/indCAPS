@@ -483,7 +483,7 @@ def nearestNeighbor(seq):
 	# keep it above 8 bases
 	# From http://biotools.nubic.northwestern.edu/OligoCalc.html and cited sources
 	R = 1.9872036 # kcal / (mole*kelvin)
-	T = (1000*(-deltaH(seq))) / ((-deltaS(seq))+R*log(1/Settings.primerConc))-272.9+16.6*log(Settings.sodiumConc,10) # FIXME: i think this is messed up somewhere? dont i need a -3.4kcal/kmole? it's not drastically wrong i dont think, just slightly messed up. oh wait i think i'm fine, the 3.4 is included in the deltaH() function
+	T = (1000*(-deltaH(seq))) / ((-deltaS(seq))+R*log(1/Settings.primerConc))-272.9+16.6*log(Settings.sodiumConc,10) # There's a 3.4 constant in the canonical expression but that is included in the deltaH() function here
 	return(T)
 
 def estimateTM(seq,func='nearestNeighbor'):
