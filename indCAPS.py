@@ -900,7 +900,8 @@ def evaluateMutations(seq,targetSeq,enzymeInfo,enzymeName):
 	# Find last shared base on each side of putative editing
 	lastSharedForward = len(seq)
 	lastSharedReverse = 0 - lastSharedForward
-	tempEditedSeqs = crisprEdit(seq,cutPosition)
+	tempEditedSeqs = list(set(crisprEdit(seq,cutPosition)))
+	# The above is addressing an edge case where the cut position is in a region of repeats and two different editing events produce identical mutant sequences. this breaks the logic of the program since the last shared base is then the end of the sequence itself. by getting only unique sequences i avoid this.
 	if len(tempEditedSeqs) > 1:
 		for eachPair in itertools.permutations(tempEditedSeqs,2):
 			tempLastSharedLeft = lastSharedBase(eachPair[0],eachPair[1],'left')
