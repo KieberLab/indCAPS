@@ -43,6 +43,8 @@ def results():
 		
 		# If the user gave two sequences, check them for quality and run main routine
 		if seq1 and seq2:
+			if seq1 == seq2:
+				return(render_template('results.html',allResults=[],notes=["Two sequences are identical."]))
 			if helperFuncs.nonBasePresent(seq1) or helperFuncs.nonBasePresent(seq2):
 				return(render_template('results.html',allResults=[],notes=["Non-bases included in input."]))
 			
