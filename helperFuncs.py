@@ -20,9 +20,14 @@ def checkBases(seqToTest):
 		return('Non-bases present in input.')
 
 def removeWhitespace(seqToTest):
+	"""
+	Checks sequence for non-permitted characters and removes them if necessary.
+	Mainly for whitespace but I also put dashes and asterisks in here
+	"""
 	changed = False
-	if any([x in ['\t',' ','\n'] for x in seqToTest]):
-		seqToTest = ''.join([x for x in seqToTest if x not in ['\t', ' ', '\n']])
+	badChars = ['\t',' ','\n', '-', '*']
+	if any([x in badChars for x in seqToTest]):
+		seqToTest = ''.join([x for x in seqToTest if x not in badChars])
 		changed = True
 	return([seqToTest,changed])
 
@@ -52,7 +57,7 @@ def evaluateInput(seq1,seq2=None):
 	whitespaceRemoveResults1 = removeWhitespace(seq1)
 	if whitespaceRemoveResults1[1] is True:
 		seq1 = whitespaceRemoveResults1[0]
-		notes.append('Removed whitespace from Sequence 1.')
+		notes.append('Removed bad characters from Sequence 1.')
 	notes1 = checkBases(seq1)
 	if notes1 is not None:
 		notes.append(notes1)
@@ -62,7 +67,7 @@ def evaluateInput(seq1,seq2=None):
 		whitespaceRemoveResults2 = removeWhitespace(seq2)
 		if whitespaceRemoveResults2[1] is True:
 			seq2 = whitespaceRemoveResults2[0]
-			notes.append('Removed whitespace from Sequence 2.')
+			notes.append('Removed bad characters from Sequence 2.')
 		notes2 = checkBases(seq2)
 		if notes2 is not None:
 			notes.append(notes2)
