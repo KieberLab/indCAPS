@@ -75,6 +75,8 @@ def results():
 			# Assemble output using sites and primers, then display
 			if allResults == [] or allResults == None:
 				notes.append('No primer candidates. Please consider increasing the mismatch tolerance or altering your desired amplicon length.')
+				allResults = []
+			
 			return(render_template('results.html',allResults=allResults,notes=notes))
 	return(render_template('index.html')) # if you tried to go to the results page on your own rather than being sent by the index, redirect to the index page
 	
@@ -136,8 +138,9 @@ def screening():
 			
 			# Tell the user if the program failed
 			if allResults == [] or allResults == None:
-				notes.append('No primer candidates. Please consider increasing the mismatch tolerance or altering your desired amplicon length.')
-				
+				notes.append('No primer candidates found. Please consider increasing the mismatch tolerance or altering your desired amplicon length.')
+				allResults == []
+			
 			# Render the results, send the user to the results page
 			return(render_template('screening.html',allResults=allResults,notes=notes))
 	# If you tried to go to the results page on your own rather than being sent by the index, redirect the user to the index page
@@ -213,7 +216,8 @@ def isogenic():
 			
 			# Tell the user if the program failed
 			if allResults == [] or allResults == None:
-				notes.append('No primer candidates. Please consider increasing the mismatch tolerance or altering your desired amplicon length.')
+				notes.append('No primer candidates found. Please consider increasing the mismatch tolerance or altering your desired amplicon length.')
+				allResults == []
 			# Render the results, send the user to the results page
 			return(render_template('isogenic.html',allResults=allResults,notes=notes))
 	# If you tried to go to the results page on your own rather than being sent by the index, redirect the user to the index page
