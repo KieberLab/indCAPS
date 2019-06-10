@@ -10,7 +10,7 @@ from werkzeug.contrib.fixers import ProxyFix
 # Set up Flask stuff
 application = Flask(__name__)
 application.jinja_env.trim_blocks = True
-application.wsgi_app = ProxyFix(application.wsgi_app,num_proxies=3)
+application.wsgi_app = ProxyFix(application.wsgi_app,num_proxies=4)
 
 
 @application.route('/', methods=['GET','POST'])
