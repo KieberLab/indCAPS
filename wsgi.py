@@ -5,10 +5,13 @@ import indCAPS
 import helperFuncs
 from enzymeList import enzymes
 import bleach # apache v2
+from werkzeug.contrib.fixers import ProxyFix
 
 # Set up Flask stuff
 application = Flask(__name__)
 application.jinja_env.trim_blocks = True
+application.wsgi_app = ProxyFix(application.wsgi_app)
+
 
 @application.route('/', methods=['GET','POST'])
 def index():
